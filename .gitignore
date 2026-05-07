@@ -1,0 +1,11 @@
+ml/data/
+ml/models/
+ml/mlruns/
+__pycache__/
+*.pyc
+.env
+.env.local
+node_modules/
+.next/
+*.egg-info/
+.venv/
