@@ -50,3 +50,17 @@ Add to repo Settings > Secrets:
 cd ml && .venv/bin/python run_training.py 50
 # smoke test first: .venv/bin/python run_training.py 10
 ```
+
+## Live URLs
+
+- Frontend: https://austin-avm.vercel.app
+- API: https://ofunrein-austin-avm-api.hf.space
+- API docs: https://ofunrein-austin-avm-api.hf.space/docs
+- HF model: https://huggingface.co/ofunrein/austin-avm-model
+- HF Space: https://huggingface.co/spaces/ofunrein/austin-avm-api
+- GitHub PR: https://github.com/Ofunrein/avm-zestimate/pull/1
+
+## HF Space Architecture
+
+Models embedded directly in Docker image (via `COPY ml/models/ ./ml/models/`).
+No runtime download needed. Cold start ~30s.
