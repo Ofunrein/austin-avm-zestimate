@@ -1,11 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.routers import predict, comps, benchmark, scan
+from api.routers import predict, comps, benchmark, scan, explain
 
 app = FastAPI(
     title="Austin AVM API",
-    description="Hyperlocal Automated Valuation Model for Austin TX",
-    version="1.0.0",
+    description="Hyperlocal Automated Valuation Model for Austin TX — AI Edition",
+    version="2.0.0",
 )
 
 app.add_middleware(
@@ -19,8 +19,9 @@ app.include_router(predict.router, tags=["prediction"])
 app.include_router(comps.router, tags=["comps"])
 app.include_router(benchmark.router, tags=["benchmark"])
 app.include_router(scan.router, tags=["scan"])
+app.include_router(explain.router, tags=["ai"])
 
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "version": "1.0.0"}
+    return {"status": "ok", "version": "2.0.0"}
