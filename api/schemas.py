@@ -89,3 +89,78 @@ class BenchmarkResponse(BaseModel):
     baseline_ppsf_medape: float
     zillow_published_medape_reference: float = 4.5
     by_zip: list[dict]
+
+
+class ExplainRequest(BaseModel):
+    predicted_price: int
+    lower_bound: int
+    upper_bound: int
+    confidence_score: int
+    shap_top5: list[ShapFeature]
+    zip_code: str
+    sqft_living: float
+    beds: int
+    baths_full: float
+    year_built: int
+    neighborhood_context: str = ""
+
+
+class ExplainResponse(BaseModel):
+    explanation: str
+
+
+class SearchRequest(BaseModel):
+    query: str
+
+
+class SearchResult(BaseModel):
+    id: str
+    address: str | None = None
+    zip_code: str | None = None
+    sqft_living: float | None = None
+    beds: int | None = None
+    baths_full: float | None = None
+    year_built: int | None = None
+    predicted_price: int
+    list_price: int | None = None
+    value_gap_pct: float | None = None
+    confidence_score: int
+    shap_top_driver: str | None = None
+    created_at: str | None = None
+
+
+class SearchResponse(BaseModel):
+    results: list[SearchResult]
+    query_parsed: dict
+    total: int
+
+
+class NeighborhoodResponse(BaseModel):
+    zip_code: str
+    school_rating: str | None = None
+    walk_score: int | None = None
+    transit_score: int | None = None
+    bike_score: int | None = None
+    median_income: int | None = None
+    population_density: float | None = None
+    crime_incidents_per_1k: float | None = None
+    summary: str
+
+
+class DealResponse(BaseModel):
+    id: str
+    address: str | None = None
+    zip_code: str | None = None
+    list_price: int | None = None
+    predicted_price: int
+    value_gap_pct: float
+    confidence_score: int
+    beds: int | None = None
+    baths_full: float | None = None
+    sqft_living: float | None = None
+    year_built: int | None = None
+    photo_url: str | None = None
+    condition_note: str | None = None
+    shap_top_driver: str | None = None
+    deal_score: float | None = None
+    created_at: str | None = None

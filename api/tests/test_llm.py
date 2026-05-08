@@ -77,3 +77,31 @@ def test_parse_search_query_handles_markdown_fences():
         result = parse_search_query("undervalued 2BR")
     assert result["beds_min"] == 2
     assert result["undervalued_only"] is True
+
+
+def test_explain_request_schema_validates():
+    from api.schemas import ExplainRequest
+    req = ExplainRequest(
+        predicted_price=450000,
+        lower_bound=400000,
+        upper_bound=500000,
+        confidence_score=80,
+        shap_top5=[],
+        zip_code="78704",
+        sqft_living=1800.0,
+        beds=3,
+        baths_full=2.0,
+        year_built=2005,
+    )
+    assert req.zip_code == "78704"
+
+
+def test_search_response_schema():
+    from api.schemas import SearchResponse, SearchResult
+    result = SearchResult(
+        id="abc",
+        predicted_price=450000,
+        confidence_score=80,
+    )
+    resp = SearchResponse(results=[result], query_parsed={}, total=1)
+    assert resp.total == 1
