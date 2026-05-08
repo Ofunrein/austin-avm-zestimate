@@ -1,0 +1,30 @@
+name: Seed Predictions Inventory
+
+on:
+  workflow_dispatch:
+    inputs:
+      max_rows:
+        description: "Max listings to process"
+        default: "500"
+        required: false
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install supabase httpx
+
+      - name: Run seed script
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          API_BASE: https://ofunrein-austin-avm-api.hf.space
+          SEED_MAX_ROWS: ${{ github.event.inputs.max_rows || '500' }}
+        run: python -m api.scripts.seed_inventory

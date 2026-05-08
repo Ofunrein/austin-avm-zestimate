@@ -1,0 +1,30 @@
+name: Weekly Deal Monitor
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"  # Every Monday 8am UTC
+  workflow_dispatch:       # Manual trigger
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install anthropic supabase sendgrid httpx
+
+      - name: Run deal monitor
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
+          API_BASE: https://ofunrein-austin-avm-api.hf.space
+          MAX_LISTINGS: "300"
+        run: python -m api.scripts.monitor
