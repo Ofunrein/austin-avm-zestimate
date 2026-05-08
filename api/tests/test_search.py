@@ -89,3 +89,37 @@ def test_search_undervalued_only_filters():
             resp = _app().post("/search", json={"query": "undervalued 3BR"})
     body = resp.json()
     assert all(r["value_gap_pct"] > 0 for r in body["results"])
+
+
+def test_deals_endpoint_returns_list():
+    fake_deal = {
+        "id": "uuid-deal-1",
+        "address": "456 Oak Ave",
+        "zip_code": "78704",
+        "list_price": 350000,
+        "predicted_price": 410000,
+        "value_gap_pct": 17.1,
+        "confidence_score": 82,
+        "beds": 3,
+        "baths_full": 2.0,
+        "sqft_living": 1800.0,
+        "year_built": 2005,
+        "photo_url": None,
+        "condition_note": None,
+        "shap_top_driver": "sqft_living",
+        "deal_score": 14.0,
+        "created_at": "2026-05-05T00:00:00",
+    }
+    with patch("api.routers.deals.db", _mock_db([fake_deal])):
+        resp = _app().get("/deals")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert len(body) == 1
+    assert body[0]["value_gap_pct"] == 17.1
+
+
+def test_deals_no_db_returns_empty():
+    with patch("api.routers.deals.db", None):
+        resp = _app().get("/deals")
+    assert resp.status_code == 200
+    assert resp.json() == []
