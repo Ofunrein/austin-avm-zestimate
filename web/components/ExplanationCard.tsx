@@ -34,7 +34,7 @@ export function ExplanationCard({ prediction, zipCode, sqft, beds, baths, yearBu
       .then(setExplanation)
       .catch(() => setExplanation(null))
       .finally(() => setLoading(false));
-  }, [prediction.predicted_price, zipCode]);
+  }, [prediction.predicted_price, prediction.lower_bound, prediction.upper_bound, prediction.confidence_score, zipCode, sqft, beds, baths, yearBuilt]);
 
   if (!loading && !explanation) return null;
 

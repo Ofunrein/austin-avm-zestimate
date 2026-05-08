@@ -1,5 +1,6 @@
 import os
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timedelta
 import httpx
 
 # TEA school district accountability ratings by Austin ZIP (2023)
@@ -70,10 +71,11 @@ def _fetch_census_income(zip_code: str) -> dict:
 
 def _fetch_crime(zip_code: str) -> dict:
     try:
+        cutoff = (datetime.utcnow() - timedelta(days=365)).strftime("%Y-%m-%dT%H:%M:%S")
         r = httpx.get(
             "https://data.austintexas.gov/resource/fdj4-gpfu.json",
             params={
-                "$where": f"zip_code='{zip_code}' AND occurred_time >= '2023-01-01T00:00:00'",
+                "$where": f"zip_code='{zip_code}' AND occurred_time >= '{cutoff}'",
                 "$select": "count(*) AS total",
             },
             timeout=8.0,

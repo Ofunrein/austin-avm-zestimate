@@ -8,7 +8,10 @@ router = APIRouter()
 
 @router.post("/search", response_model=SearchResponse)
 def search(req: SearchRequest):
-    params = parse_search_query(req.query)
+    try:
+        params = parse_search_query(req.query)
+    except Exception:
+        params = {"undervalued_only": False}
 
     if not db:
         return SearchResponse(results=[], query_parsed=params, total=0)
@@ -33,7 +36,11 @@ def search(req: SearchRequest):
     if params.get("year_built_min"):
         q = q.gte("year_built", params["year_built_min"])
 
-    rows = q.order("predicted_price", desc=True).limit(20).execute().data
+    if params.get("undervalued_only"):
+        q = q.gt("value_gap_pct", 0).order("value_gap_pct", desc=True)
+    else:
+        q = q.order("predicted_price", desc=True)
+    rows = q.limit(20).execute().data
 
     results: list[SearchResult] = []
     for r in rows:

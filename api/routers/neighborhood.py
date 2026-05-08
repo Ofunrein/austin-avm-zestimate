@@ -1,5 +1,6 @@
+import re
 from datetime import datetime, timedelta, timezone
-from fastapi import APIRouter
+from fastapi import APIRouter, Path as FPath
 from api.schemas import NeighborhoodResponse
 from api.services.neighborhood import fetch_neighborhood
 from api.db import db
@@ -9,7 +10,7 @@ _TTL_DAYS = 30
 
 
 @router.get("/neighborhood/{zip_code}", response_model=NeighborhoodResponse)
-def get_neighborhood(zip_code: str):
+def get_neighborhood(zip_code: str = FPath(..., pattern=r"^\d{5}$")):
     if db:
         cutoff = (datetime.now(timezone.utc) - timedelta(days=_TTL_DAYS)).isoformat()
         cached = (

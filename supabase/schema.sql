@@ -77,3 +77,8 @@ create table if not exists deals (
 create index if not exists idx_neighborhood_created on neighborhood_cache(created_at desc);
 create index if not exists idx_deals_created on deals(created_at desc);
 create index if not exists idx_deals_gap on deals(value_gap_pct desc);
+
+-- UNIQUE constraints required for upsert on_conflict="address"
+-- NOTE: Must also be run manually in the Supabase dashboard SQL editor
+create unique index if not exists idx_predictions_address on predictions(address);
+create unique index if not exists idx_deals_address on deals(address);

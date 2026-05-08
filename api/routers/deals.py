@@ -8,8 +8,8 @@ router = APIRouter()
 @router.get("/deals", response_model=list[DealResponse])
 def get_deals(
     zip_code: str | None = Query(default=None),
-    min_gap: float = Query(default=10.0),
-    min_confidence: int = Query(default=70),
+    min_gap: float = Query(default=10.0, ge=0),
+    min_confidence: int = Query(default=70, ge=0, le=100),
     limit: int = Query(default=20, le=50),
 ):
     if not db:

@@ -45,6 +45,7 @@ def _mock_db(rows):
     class FakeQuery:
         def select(self, *a): return self
         def gte(self, *a): return self
+        def gt(self, *a): return self
         def lte(self, *a): return self
         def eq(self, *a): return self
         def in_(self, *a): return self

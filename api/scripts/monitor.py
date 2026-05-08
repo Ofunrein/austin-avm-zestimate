@@ -22,9 +22,9 @@ MAX_LISTINGS = int(os.environ.get("MAX_LISTINGS", "200"))
 EMAIL_GAP_THRESHOLD = float(os.environ.get("EMAIL_GAP_THRESHOLD", "15.0"))
 
 API_BASE = os.environ.get("API_BASE", "https://ofunrein-austin-avm-api.hf.space")
-SUPABASE_URL = os.environ["SUPABASE_URL"]
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
-ANTHROPIC_API_KEY = os.environ["ANTHROPIC_API_KEY"]
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY", "")
 ALERT_EMAIL = os.environ.get("ALERT_EMAIL", "")
 
@@ -37,6 +37,9 @@ def analyze_photo(photo_url: str, anthropic_client) -> str | None:
         with urllib.request.urlopen(req, timeout=10) as resp:
             img_data = resp.read()
             content_type = resp.headers.get("Content-Type", "image/jpeg").split(";")[0]
+            _VALID_IMAGE_TYPES = {"image/jpeg", "image/png", "image/gif", "image/webp"}
+            if content_type not in _VALID_IMAGE_TYPES:
+                return None
     except Exception:
         return None
 
@@ -98,6 +101,10 @@ def send_email(deals: list[dict]) -> None:
 
 
 def main() -> None:
+    if not SUPABASE_URL or not SUPABASE_KEY or not ANTHROPIC_API_KEY:
+        print("Error: SUPABASE_URL, SUPABASE_KEY, and ANTHROPIC_API_KEY must be set")
+        import sys; sys.exit(1)
+
     from supabase import create_client
     from anthropic import Anthropic
     from api.scripts.seed_inventory import download_csv, parse_row, REDFIN_URL, predict_property
