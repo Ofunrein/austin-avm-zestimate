@@ -12,57 +12,67 @@ and pass it as: python -m api.scripts.seed_inventory --csv /path/to/austin.csv
 """
 import argparse
 import csv
-import io
 import json
 import os
 import sys
 import time
-import urllib.request
 from pathlib import Path
 
-REDFIN_URL = (
-    "https://redfin-public-data.s3.us-west-2.amazonaws.com"
-    "/rf_buy/latest/city/Austin%2C%20TX.csv"
-)
+KAGGLE_DATASET = "ericpierce/austinhousingprices"
 API_BASE = os.environ.get("API_BASE", "http://localhost:7860")
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
 MAX_ROWS = int(os.environ.get("SEED_MAX_ROWS", "500"))
 
 
-def download_csv(url: str) -> list[dict]:
-    print(f"Downloading {url} ...")
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        content = resp.read().decode("utf-8")
-    reader = csv.DictReader(io.StringIO(content))
-    return list(reader)
+def download_kaggle_csv() -> list[dict]:
+    import subprocess, tempfile, glob
+    print(f"Downloading Kaggle dataset {KAGGLE_DATASET} ...")
+    with tempfile.TemporaryDirectory() as tmp:
+        subprocess.run(
+            ["kaggle", "datasets", "download", "-d", KAGGLE_DATASET, "-p", tmp, "--unzip"],
+            check=True,
+        )
+        csvs = glob.glob(f"{tmp}/*.csv")
+        if not csvs:
+            raise FileNotFoundError(f"No CSV found in {tmp}")
+        with open(csvs[0], newline="", encoding="utf-8") as f:
+            return list(csv.DictReader(f))
 
 
 def parse_row(row: dict) -> dict | None:
     try:
-        sqft = float(row.get("SQUARE FEET") or 0)
+        # Kaggle Austin dataset column names
+        sqft = float(row.get("livingAreaSqFt") or row.get("SQUARE FEET") or 0)
         if sqft < 200 or sqft > 20000:
             return None
-        lat = float(row.get("LATITUDE") or 0)
-        lng = float(row.get("LONGITUDE") or 0)
+        lat = float(row.get("latitude") or row.get("LATITUDE") or 0)
+        lng = float(row.get("longitude") or row.get("LONGITUDE") or 0)
         if not (29.0 <= lat <= 31.5 and -99.0 <= lng <= -96.5):
             return None
-        zip_code = str(row.get("ZIP OR POSTAL CODE") or "")[:5]
+        zip_code = str(row.get("zipcode") or row.get("ZIP OR POSTAL CODE") or "")[:5]
         if len(zip_code) != 5:
             return None
+        address = (
+            row.get("streetAddress") or row.get("ADDRESS") or ""
+        ).strip()
+        beds = int(float(row.get("numBedrooms") or row.get("BEDS") or 0))
+        baths = float(row.get("numBathrooms") or row.get("BATHS") or 0)
+        year = int(float(row.get("yearBuilt") or row.get("YEAR BUILT") or 2000))
+        lot = float(row.get("lotSizeSqFt") or row.get("LOT SIZE") or 0)
+        price = int(float(row.get("latestPrice") or row.get("PRICE") or 0))
         return {
-            "address": (row.get("ADDRESS") or "").strip(),
+            "address": address,
             "sqft_living": sqft,
-            "beds": int(float(row.get("BEDS") or 0)),
-            "baths_full": float(row.get("BATHS") or 0),
-            "year_built": int(float(row.get("YEAR BUILT") or 2000)),
+            "beds": beds,
+            "baths_full": baths,
+            "year_built": year,
             "zip_code": zip_code,
             "lat": lat,
             "lng": lng,
-            "lot_sqft": float(row.get("LOT SIZE") or 0),
-            "list_price": int(float(row.get("PRICE") or 0)),
-            "photo_url": row.get("URL (SEE https://www.redfin.com/buy-a-home/comparative-market-analysis for info on how to access the full photo links)") or "",
+            "lot_sqft": lot,
+            "list_price": price,
+            "photo_url": "",
         }
     except (ValueError, TypeError):
         return None
@@ -107,7 +117,7 @@ def main(csv_path: str | None = None):
         with open(csv_path, newline="", encoding="utf-8") as f:
             rows = list(csv.DictReader(f))
     else:
-        rows = download_csv(REDFIN_URL)
+        rows = download_kaggle_csv()
 
     print(f"Downloaded {len(rows)} rows. Processing up to {MAX_ROWS}...")
 

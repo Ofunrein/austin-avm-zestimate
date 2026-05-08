@@ -107,13 +107,13 @@ def main() -> None:
 
     from supabase import create_client
     from anthropic import Anthropic
-    from api.scripts.seed_inventory import download_csv, parse_row, REDFIN_URL, predict_property
+    from api.scripts.seed_inventory import download_kaggle_csv, parse_row, predict_property
 
     db = create_client(SUPABASE_URL, SUPABASE_KEY)
     anthropic = Anthropic(api_key=ANTHROPIC_API_KEY)
 
-    print("Downloading Redfin Austin listings...")
-    rows = download_csv(REDFIN_URL)
+    print("Downloading Kaggle Austin listings...")
+    rows = download_kaggle_csv()
     print(f"{len(rows)} listings downloaded. Processing up to {MAX_LISTINGS}...")
 
     deals: list[dict] = []
