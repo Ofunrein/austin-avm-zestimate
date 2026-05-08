@@ -2,14 +2,16 @@ from fastapi import APIRouter
 import numpy as np
 import pandas as pd
 import sys
+import traceback
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parents[3] / "ml/src"))
+sys.path.insert(0, str(Path(__file__).parents[2] / "ml/src"))
 from avm.features import add_structural, add_location, add_market_features, build_feature_matrix
 from avm.intervals import predict_intervals, confidence_score
 from avm.shap_gen import make_explainer, top_shap_features
 from api.schemas import PropertyInput, PredictionResponse, ShapFeature
 from api.model_loader import load_all_models
+from api.db import db
 
 router = APIRouter()
 _models = None
@@ -48,7 +50,7 @@ def predict(prop: PropertyInput):
     explainer = make_explainer(xgb_model)
     shap_feats = top_shap_features(explainer, df, n=5)
 
-    return PredictionResponse(
+    response = PredictionResponse(
         predicted_price=int(predicted),
         lower_bound=int(low_arr[0]),
         upper_bound=int(high_arr[0]),
@@ -56,3 +58,25 @@ def predict(prop: PropertyInput):
         shap_top5=[ShapFeature(**f) for f in shap_feats],
         model_version=meta.get("version", "1.0.0"),
     )
+
+    if db is not None:
+        try:
+            db.table("predictions").insert({
+                "address": None,
+                "lat": prop.lat,
+                "lng": prop.lng,
+                "sqft_living": prop.sqft_living,
+                "beds": prop.beds,
+                "baths_full": prop.baths_full,
+                "year_built": prop.year_built,
+                "zip_code": prop.zip_code,
+                "predicted_price": response.predicted_price,
+                "lower_bound": response.lower_bound,
+                "upper_bound": response.upper_bound,
+                "confidence_score": response.confidence_score,
+                "shap_json": [f.model_dump() for f in response.shap_top5],
+            }).execute()
+        except Exception:
+            traceback.print_exc()
+
+    return response

@@ -5,6 +5,7 @@ import { predict, getComps, PredictionResponse, CompProperty } from "@/lib/api";
 import { PredictionCard } from "@/components/PredictionCard";
 import { ShapWaterfall } from "@/components/ShapWaterfall";
 import { CompsTable } from "@/components/CompsTable";
+import { RecentValuations } from "@/components/RecentValuations";
 
 const DEFAULT = {
   sqft_living: 1800, beds: 3, baths_full: 2, baths_half: 0,
@@ -143,6 +144,7 @@ export default function HomePage() {
           </AnimatePresence>
         </div>
       </div>
+      <RecentValuations />
     </div>
   );
 }
