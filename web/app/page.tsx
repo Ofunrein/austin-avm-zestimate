@@ -1,10 +1,12 @@
 "use client";
 import { useState } from "react";
-import { predict, getComps, PredictionResponse, CompProperty } from "@/lib/api";
+import { predict, getComps, PredictionResponse, CompProperty, searchProperties, SearchResult } from "@/lib/api";
 import { PredictionCard } from "@/components/PredictionCard";
 import { ShapWaterfall } from "@/components/ShapWaterfall";
 import { CompsTable } from "@/components/CompsTable";
 import { ExplanationCard } from "@/components/ExplanationCard";
+import { SearchBar } from "@/components/SearchBar";
+import { SearchResults } from "@/components/SearchResults";
 
 const DEFAULT = {
   sqft_living: 1800, beds: 3, baths_full: 2, baths_half: 0,
@@ -18,6 +20,10 @@ export default function HomePage() {
   const [comps, setComps] = useState<CompProperty[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [searchTotal, setSearchTotal] = useState(0);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +41,26 @@ export default function HomePage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearch = async (query: string) => {
+    setSearchLoading(true);
+    setSearchQuery(query);
+    try {
+      const resp = await searchProperties(query);
+      setSearchResults(resp.results);
+      setSearchTotal(resp.total);
+    } catch {
+      setSearchResults([]);
+      setSearchTotal(0);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchQuery(null);
+    setSearchResults([]);
   };
 
   const field = (key: keyof typeof DEFAULT, label: string, type = "number") => (
@@ -62,6 +88,21 @@ export default function HomePage() {
           </nav>
         </div>
 
+        <SearchBar onSearch={handleSearch} loading={searchLoading} />
+        <div className="mt-3 mb-3 flex items-center gap-3">
+          <div className="flex-1 h-px bg-zinc-200" />
+          <span className="text-xs text-zinc-400">or value a specific property</span>
+          <div className="flex-1 h-px bg-zinc-200" />
+        </div>
+
+        {searchQuery ? (
+          <SearchResults
+            results={searchResults}
+            total={searchTotal}
+            query={searchQuery}
+            onClear={clearSearch}
+          />
+        ) : (
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-zinc-200 p-6 shadow-sm mb-8">
           <h2 className="text-sm font-semibold text-zinc-700 mb-4">Property Details</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -83,6 +124,7 @@ export default function HomePage() {
           </button>
           {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
         </form>
+        )}
 
         {result && (
           <div className="space-y-6">
