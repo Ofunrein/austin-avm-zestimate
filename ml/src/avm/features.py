@@ -94,11 +94,17 @@ def add_market_features(df: pd.DataFrame) -> pd.DataFrame:
 
 def add_assessed_features(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
-    if "assessed_value" in df.columns:
+    if "assessed_value" in df.columns and "sale_price" in df.columns:
         df["price_per_sqft_assessed"] = (
             df["assessed_value"] / df["sqft_living"].replace(0, 1)
         ).clip(0, 2000)
         df["assessed_ratio"] = (df["assessed_value"] / df["sale_price"].replace(0, 1)).clip(0, 5)
+    elif "assessed_value" in df.columns:
+        # Inference mode: assessed_value present but no sale_price
+        df["price_per_sqft_assessed"] = (
+            df["assessed_value"] / df["sqft_living"].replace(0, 1)
+        ).clip(0, 2000)
+        df["assessed_ratio"] = 0.0
     else:
         df["price_per_sqft_assessed"] = 0.0
         df["assessed_ratio"] = 0.0
@@ -118,6 +124,9 @@ FEATURE_COLS = [
 
 
 def build_feature_matrix(df: pd.DataFrame) -> pd.DataFrame:
-    """Return only model feature columns, filling missing with 0."""
-    cols = [c for c in FEATURE_COLS if c in df.columns]
-    return df[cols].fillna(0).astype(float)
+    """Return all model feature columns, filling missing with 0."""
+    out = df.copy()
+    for col in FEATURE_COLS:
+        if col not in out.columns:
+            out[col] = 0.0
+    return out[FEATURE_COLS].fillna(0).astype(float)

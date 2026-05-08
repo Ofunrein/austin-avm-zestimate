@@ -6,7 +6,7 @@ import traceback
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "ml/src"))
-from avm.features import add_structural, add_location, add_market_features, build_feature_matrix
+from avm.features import add_structural, add_location, add_market_features, add_assessed_features, build_feature_matrix
 from avm.intervals import predict_intervals, confidence_score
 from avm.shap_gen import make_explainer, top_shap_features
 from api.schemas import PropertyInput, PredictionResponse, ShapFeature
@@ -35,6 +35,8 @@ def predict(prop: PropertyInput):
     df = add_structural(df)
     df, _ = add_location(df)
     df = add_market_features(df)
+    df = add_assessed_features(df)
+    df["is_covid_period"] = 0
     X = build_feature_matrix(df)
 
     xgb_pred = float(np.expm1(xgb_model.predict(X)[0]))
