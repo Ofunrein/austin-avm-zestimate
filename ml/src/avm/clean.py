@@ -68,7 +68,8 @@ def _normalise_address(addr: str) -> str:
 def clean(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
 
-    # drop missing required fields
+    # normalise column names (Kaggle → standard)
+    df = normalise_kaggle(df)
     df = df.dropna(subset=[c for c in REQUIRED_COLS if c in df.columns])
 
     # price sanity: Austin homes $50k–$10M
