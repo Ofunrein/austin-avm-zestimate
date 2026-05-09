@@ -14,10 +14,15 @@ import argparse
 import csv
 import json
 import os
+import ssl
 import sys
 import time
 import urllib.request
 from pathlib import Path
+
+_SSL_CTX = ssl.create_default_context()
+_SSL_CTX.check_hostname = False
+_SSL_CTX.verify_mode = ssl.CERT_NONE
 
 KAGGLE_DATASET = "ericpierce/austinhousingprices"
 API_BASE = os.environ.get("API_BASE", "http://localhost:7860")
@@ -96,7 +101,7 @@ def predict_property(prop: dict) -> dict | None:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, context=_SSL_CTX, timeout=15) as resp:
             return json.loads(resp.read())
     except Exception as e:
         print(f"  predict failed: {e}")
@@ -106,7 +111,7 @@ def predict_property(prop: dict) -> dict | None:
 def upsert_batch(records: list[dict], db) -> None:
     for i in range(0, len(records), 100):
         batch = records[i : i + 100]
-        db.table("predictions").upsert(batch).execute()
+        db.table("predictions").upsert(batch, on_conflict="address").execute()
         print(f"  upserted {min(i + 100, len(records))}/{len(records)}")
 
 

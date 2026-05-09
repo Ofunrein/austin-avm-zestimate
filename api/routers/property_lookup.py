@@ -4,6 +4,8 @@ property details (sqft, beds, baths, year built) from Zillow via Apify.
 
 Env vars:
   APIFY_API_TOKEN  — Apify token (optional; skips enrichment if missing)
+  SUPABASE_URL     — Supabase project URL
+  SUPABASE_KEY     — Supabase service role key
 """
 import json
 import os
@@ -15,8 +17,9 @@ from pydantic import BaseModel
 router = APIRouter()
 
 APIFY_TOKEN = os.environ.get("APIFY_API_TOKEN", "")
-# apify/zillow-scraper — search by address, returns property details
 ACTOR_ID = "maxcopell~zillow-scraper"
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
 
 
 class LookupRequest(BaseModel):
@@ -34,6 +37,35 @@ class LookupResponse(BaseModel):
     year_built: int | None = None
     image_url: str | None = None
     source: str = "geocode_only"
+
+
+def _supabase_lookup(address: str) -> dict | None:
+    """Check predictions table for cached property data."""
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        return None
+    try:
+        encoded = urllib.parse.quote(address)
+        url = f"{SUPABASE_URL}/rest/v1/predictions?address=eq.{encoded}&select=sqft_living,beds,baths_full,year_built,zip_code,lat,lng,photo_url&limit=1"
+        req = urllib.request.Request(url, headers={
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+        })
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            rows = json.loads(resp.read())
+        if not rows:
+            return None
+        row = rows[0]
+        if not any([row.get("sqft_living"), row.get("beds"), row.get("baths_full")]):
+            return None
+        return {
+            "sqft_living": row.get("sqft_living"),
+            "beds": row.get("beds"),
+            "baths_full": row.get("baths_full"),
+            "year_built": row.get("year_built"),
+            "image_url": row.get("photo_url") or None,
+        }
+    except Exception:
+        return None
 
 
 def _nominatim_geocode(address: str) -> dict | None:
@@ -123,6 +155,18 @@ def property_lookup(req: LookupRequest):
         source="geocode_only",
     )
 
+    # Check Supabase cache first (seeded Kaggle properties)
+    cached = _supabase_lookup(req.address)
+    if cached:
+        result.sqft_living = cached.get("sqft_living")
+        result.beds = cached.get("beds")
+        result.baths_full = cached.get("baths_full")
+        result.year_built = cached.get("year_built")
+        result.image_url = cached.get("image_url")
+        result.source = "supabase_cache"
+        return result
+
+    # Fallback to Apify Zillow scraper
     enriched = _apify_zillow_lookup(req.address)
     if enriched:
         result.sqft_living = enriched.get("sqft_living")
