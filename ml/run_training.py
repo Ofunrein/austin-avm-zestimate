@@ -36,7 +36,7 @@ from avm.train import tune_xgboost, tune_lightgbm, train_final, ensemble_predict
 from avm.baseline import predict_zip_median, predict_ppsf, medape as bmedape
 from avm.shap_gen import make_explainer
 
-MODELS_DIR = Path(__file__).parent / "models"
+MODELS_DIR = Path(__file__).parent.parent / "models"  # avm-zestimate/models/ (matches train.py)
 N_OPTUNA_TRIALS = int(sys.argv[1]) if len(sys.argv) > 1 else 50
 
 
