@@ -118,10 +118,10 @@ git clone https://github.com/Ofunrein/avm-zestimate
 cd avm-zestimate
 
 # Install Python deps
-cd ml && uv sync
+cd ml && uv sync && cd ..
 
 # Train the model (requires Kaggle API key for data download)
-python run_training.py 10   # 10 Optuna trials for quick test
+python ml/run_training.py 10   # 10 Optuna trials for quick test
 
 # Start the API (from repo root)
 uvicorn api.main:app --reload
