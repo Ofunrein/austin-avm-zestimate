@@ -152,6 +152,7 @@ export interface SearchResult {
   confidence_score: number;
   shap_top_driver?: string;
   neighborhood_summary?: string;
+  data_source?: string;
   created_at?: string;
 }
 
