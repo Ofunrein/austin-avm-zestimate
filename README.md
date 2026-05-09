@@ -1,8 +1,5 @@
 ---
 title: Austin AVM API
-emoji: 🏠
-colorFrom: yellow
-colorTo: orange
 sdk: docker
 pinned: false
 ---
