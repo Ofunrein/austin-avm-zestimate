@@ -8,6 +8,7 @@ Env vars:
 import json
 import os
 import urllib.request
+import urllib.parse
 from fastapi import APIRouter
 from pydantic import BaseModel
 
@@ -38,11 +39,11 @@ def _nominatim_geocode(address: str) -> dict | None:
     query = address if ("Austin" in address or "TX" in address) else f"{address}, Austin, TX"
     url = (
         "https://nominatim.openstreetmap.org/search"
-        f"?q={urllib.request.quote(query)}&format=json&addressdetails=1&limit=1&countrycodes=us"
+        f"?q={urllib.parse.quote(query)}&format=json&addressdetails=1&limit=1&countrycodes=us"
     )
     try:
         req = urllib.request.Request(url, headers={"User-Agent": "AustinAVM/1.0"})
-        with urllib.request.urlopen(req, timeout=5) as resp:
+        with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read())
         if not data:
             return None
