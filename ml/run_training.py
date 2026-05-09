@@ -29,6 +29,8 @@ from avm.features import (
 )
 from avm.ingest import load_kaggle_austin
 from avm.intervals import train_quantile_models, save_quantile_models
+from avm.enrich_census import fetch_zip_income_scores
+from avm.enrich_tcad import build_tcad_lookup
 from avm.split import temporal_cv_folds, train_test_split_temporal
 from avm.train import tune_xgboost, tune_lightgbm, train_final, ensemble_predict, save_models
 from avm.baseline import predict_zip_median, predict_ppsf, medape as bmedape
@@ -50,12 +52,29 @@ def main():
     sha = data_sha256(df)
     print(f"  Data SHA256: {sha}")
 
+    # Load enrichment data (fail-soft: training still works without them)
+    print("[1b/9] Loading enrichment data...")
+    try:
+        income_lookup = fetch_zip_income_scores()
+        print(f"  Census ACS: {len(income_lookup):,} ZIP income scores")
+    except Exception as e:
+        income_lookup = {}
+        print(f"  Census ACS: skipped ({e})")
+
+    tcad_path = Path(__file__).parent / "data/raw/tcad_parcels.csv"
+    try:
+        tcad_lookup = build_tcad_lookup(tcad_path)
+        print(f"  TCAD: {len(tcad_lookup):,} parcel values")
+    except Exception as e:
+        tcad_lookup = {}
+        print(f"  TCAD: skipped ({e})")
+
     # 2. Feature engineering
     print("[2/9] Feature engineering...")
     df = add_structural(df)
-    df, zip_encoder = add_location(df)
+    df, zip_encoder = add_location(df, income_lookup=income_lookup)
     df = add_market_features(df)
-    df = add_assessed_features(df)
+    df = add_assessed_features(df, tcad_lookup=tcad_lookup)
 
     # Persist processed features for comps endpoint
     processed_dir = Path(__file__).parent / "data/processed"

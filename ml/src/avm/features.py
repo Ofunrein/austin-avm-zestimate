@@ -94,9 +94,23 @@ def add_market_features(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def add_assessed_features(df: pd.DataFrame) -> pd.DataFrame:
+def add_assessed_features(
+    df: pd.DataFrame,
+    tcad_lookup: dict | None = None,
+) -> pd.DataFrame:
     df = df.copy()
-    if "assessed_value" in df.columns:
+    # Populate assessed_value from TCAD lookup if not already present in row
+    if tcad_lookup and "address" in df.columns:
+        from avm.enrich_tcad import lookup_appraised_value
+        def _tcad_fill(row):
+            existing = row.get("assessed_value", 0) or 0
+            if existing > 0:
+                return float(existing)
+            found = lookup_appraised_value(str(row.get("address", "")), tcad_lookup)
+            return float(found) if found else 0.0
+        df["assessed_value"] = df.apply(_tcad_fill, axis=1)
+
+    if "assessed_value" in df.columns and (df["assessed_value"] > 0).any():
         df["price_per_sqft_assessed"] = (
             df["assessed_value"] / df["sqft_living"].replace(0, 1)
         ).clip(0, 2000)
