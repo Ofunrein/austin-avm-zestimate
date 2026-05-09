@@ -82,9 +82,17 @@ def main():
     df.to_parquet(processed_dir / "train_features.parquet", index=False)
     print(f"  Saved train_features.parquet ({len(df):,} rows)")
 
-    # 3. Split
+    # 3. Split — use last 20% of date range as test (adapts to any dataset)
     print("[3/9] Temporal split...")
-    train_df, test_df = train_test_split_temporal(df, test_start="2024-01-01")
+    if "sale_date" in df.columns and df["sale_date"].notna().any():
+        max_date = df["sale_date"].max()
+        min_date = df["sale_date"].min()
+        span = max_date - min_date
+        test_cutoff = min_date + span * 0.80
+        test_start = test_cutoff.strftime("%Y-%m-%d")
+    else:
+        test_start = "2021-01-01"
+    train_df, test_df = train_test_split_temporal(df, test_start=test_start)
     folds = temporal_cv_folds(train_df, n_folds=5)
     print(f"  Train: {len(train_df):,} | Test: {len(test_df):,} | CV folds: {len(folds)}")
 
