@@ -144,10 +144,11 @@ def main() -> None:
             "sqft_living": r.get("sqft_living"),
             "year_built": r.get("year_built"),
             "shap_top_driver": shap_driver,
-            "deal_score": round(gap * r.get("confidence_score", 0) / 100, 2),
+            "deal_score": round(gap * r.get("confidence_score", 1) / 100, 2),
+            "data_source": r.get("data_source", "kaggle_historical"),
         })
 
-    print(f"Found {len(deals)} deals above {MIN_GAP_PCT}% gap.")
+    print(f"Found {len(deals)} historical value opportunities above {MIN_GAP_PCT}% gap.")
     deals.sort(key=lambda d: d["deal_score"], reverse=True)
 
     print("Upserting deals to Supabase...")

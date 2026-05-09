@@ -145,6 +145,7 @@ def main(csv_path: str | None = None):
             "confidence_score": pred["confidence_score"],
             "shap_json": pred["shap_top5"],
             "list_price": parsed["list_price"],
+            "data_source": "kaggle_historical",
         })
         if (i + 1) % 50 == 0:
             print(f"  processed {i + 1}/{min(MAX_ROWS, len(rows))}")

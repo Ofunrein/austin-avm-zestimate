@@ -46,6 +46,10 @@ create index if not exists idx_benchmark_created on benchmark_runs(created_at de
 -- Add list_price to predictions for search/deal comparison
 alter table predictions add column if not exists list_price integer;
 
+-- Data source: distinguish historical Kaggle sales from future live listings
+alter table predictions add column if not exists data_source text default 'kaggle_historical';
+create index if not exists idx_predictions_source on predictions(data_source);
+
 -- Neighborhood context cache (30-day TTL enforced in app layer)
 create table if not exists neighborhood_cache (
   cache_key text primary key,

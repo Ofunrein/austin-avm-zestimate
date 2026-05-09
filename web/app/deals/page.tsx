@@ -30,6 +30,9 @@ export default async function DealsPage() {
           <div className="t-mono" style={{ fontSize: 12, color: 'var(--mute)' }}>
             {deals.length} PROPERTIES · AVM PREDICTS &gt;10% ABOVE LIST PRICE · AUSTIN TX
           </div>
+          <div className="t-mono" style={{ fontSize: 11, color: 'var(--gold)', marginTop: 8, padding: '6px 10px', background: 'rgba(212,168,83,0.08)', borderLeft: '2px solid var(--gold)' }}>
+            DATA SOURCE: HISTORICAL KAGGLE SALES (2018–2021) — NOT LIVE LISTINGS · FOR RESEARCH USE ONLY
+          </div>
         </div>
 
         {deals.length === 0 ? (
