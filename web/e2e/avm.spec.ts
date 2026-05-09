@@ -19,7 +19,7 @@ test.describe("Homepage", () => {
     const nav = page.locator("nav.topbar, .topbar");
     await expect(nav).toBeVisible();
     // All 5 nav links
-    for (const label of ["VALUATION", "BENCHMARK", "SCANNER", "DEALS", "MODEL CARD"]) {
+    for (const label of ["VALUATION", "BENCHMARK", "OPPORTUNITIES", "UPLOAD", "MODEL CARD"]) {
       await expect(nav.getByText(label)).toBeVisible();
     }
   });
@@ -73,7 +73,7 @@ test.describe("Homepage", () => {
 
 // ── Nav persistence across pages ─────────────────────────
 test.describe("Navigation persistence", () => {
-  const pages = ["/", "/benchmark", "/scanner", "/deals", "/model-card"];
+  const pages = ["/", "/benchmark", "/upload", "/opportunities", "/model-card"];
 
   for (const path of pages) {
     test(`nav visible on ${path}`, async ({ page }) => {
@@ -91,17 +91,17 @@ test.describe("Navigation persistence", () => {
     await expect(page.getByText(/BENCHMARK|MedAPE/i).first()).toBeVisible();
   });
 
-  test("clicking DEALS link navigates correctly", async ({ page }) => {
+  test("clicking OPPORTUNITIES link navigates correctly", async ({ page }) => {
     await page.goto("/");
-    await page.locator(".topbar").getByText("DEALS").click();
-    await expect(page).toHaveURL(/deals/);
-    await expect(page.getByText(/DEAL|Undervalued|No deals/i).first()).toBeVisible();
+    await page.locator(".topbar").getByText("OPPORTUNITIES").click();
+    await expect(page).toHaveURL(/opportunities/);
+    await expect(page.getByText(/Opportunity|OPPORTUNITY|BACKTEST|No data/i).first()).toBeVisible();
   });
 
-  test("clicking SCANNER link navigates correctly", async ({ page }) => {
+  test("clicking UPLOAD link navigates correctly", async ({ page }) => {
     await page.goto("/");
-    await page.locator(".topbar").getByText("SCANNER").click();
-    await expect(page).toHaveURL(/scanner/);
+    await page.locator(".topbar").getByText("UPLOAD").click();
+    await expect(page).toHaveURL(/upload/);
   });
 
   test("clicking MODEL CARD link navigates correctly", async ({ page }) => {
@@ -160,37 +160,36 @@ test.describe("Benchmark page", () => {
   });
 });
 
-// ── Deals page ────────────────────────────────────────────
-test.describe("Deals page", () => {
+// ── Opportunities page ────────────────────────────────────
+test.describe("Opportunities page", () => {
   test("loads without error", async ({ page }) => {
-    await page.goto("/deals");
+    await page.goto("/opportunities");
     await page.waitForTimeout(3000);
     const body = await page.textContent("body");
-    // Should show deals or empty state — not a crash
     expect(
-      body!.includes("DEAL") ||
-      body!.includes("Deal") ||
-      body!.includes("deal") ||
-      body!.includes("No deals") ||
+      body!.includes("OPPORTUNITY") ||
+      body!.includes("Opportunity") ||
+      body!.includes("BACKTEST") ||
+      body!.includes("NO DATA") ||
       body!.includes("ERR")
     ).toBeTruthy();
   });
 
-  test("nav still visible on deals page", async ({ page }) => {
-    await page.goto("/deals");
+  test("nav still visible on opportunities page", async ({ page }) => {
+    await page.goto("/opportunities");
     await expect(page.locator(".topbar")).toBeVisible();
   });
 });
 
-// ── Scanner page ──────────────────────────────────────────
-test.describe("Scanner page", () => {
-  test("loads Bloomberg Terminal UI", async ({ page }) => {
-    await page.goto("/scanner");
-    await expect(page.getByText(/BATCH.*SCANNER|Scanner/i).first()).toBeVisible();
+// ── Upload page ───────────────────────────────────────────
+test.describe("Upload page", () => {
+  test("loads upload UI", async ({ page }) => {
+    await page.goto("/upload");
+    await expect(page.getByText(/Upload|UPLOAD/i).first()).toBeVisible();
   });
 
   test("file upload area visible", async ({ page }) => {
-    await page.goto("/scanner");
+    await page.goto("/upload");
     const upload = page.locator('input[type="file"]');
     await expect(upload).toBeAttached();
   });
