@@ -1,10 +1,7 @@
 from fastapi import APIRouter
 import numpy as np
 import pandas as pd
-import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parents[2] / "ml/src"))
 from avm.features import add_structural, add_location, add_market_features, add_assessed_features, build_feature_matrix
 from avm.shap_gen import make_explainer, top_shap_features
 from api.routers.predict import get_models

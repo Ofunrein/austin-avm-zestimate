@@ -2,8 +2,10 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
-# copy ML source (needed for feature engineering imports)
+# copy ML source and install as package (eliminates sys.path hacks in routers)
 COPY ml/src/ ./ml/src/
+COPY ml/pyproject.toml ./ml/
+RUN pip install --no-cache-dir -e ./ml --no-deps
 
 # copy API
 COPY api/ ./api/

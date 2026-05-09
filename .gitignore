@@ -8,6 +8,10 @@ __pycache__/
 *.pyc
 .env
 .env.local
+.superpowers/
+web/playwright-report/
+web/test-results/
+
 node_modules/
 .next/
 *.egg-info/

@@ -21,7 +21,7 @@ const NAV_LINKS = [
 ];
 
 function TopNav() {
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">("light");
   const [path, setPath] = useState("/");
 
   useEffect(() => {
@@ -97,8 +97,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="description" content="Bloomberg Terminal-grade home valuation for Austin, TX" />
         <script dangerouslySetInnerHTML={{ __html: `
           (function(){
-            var t = localStorage.getItem('avm-theme');
-            if(t) document.documentElement.setAttribute('data-theme', t);
+            var t = localStorage.getItem('avm-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', t);
           })();
         `}} />
       </head>

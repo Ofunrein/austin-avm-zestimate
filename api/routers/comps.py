@@ -1,9 +1,7 @@
 from fastapi import APIRouter, Query, HTTPException
 import pandas as pd
-import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parents[2] / "ml/src"))
 from avm.comps import find_comps
 from api.schemas import CompProperty
 

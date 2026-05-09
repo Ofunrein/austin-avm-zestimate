@@ -48,6 +48,6 @@ jobs:
         with:
           python-version: "3.13"
       - name: Install API deps
-        run: pip install -r api/requirements.txt pytest httpx
+        run: pip install -e ml/ --no-deps && pip install -r api/requirements.txt pytest httpx
       - name: Run API smoke tests
-        run: python -m pytest api/tests/test_smoke.py -v --tb=short
+        run: python -m pytest api/tests/ -v --tb=short
