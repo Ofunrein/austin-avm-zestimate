@@ -76,40 +76,6 @@ export default function HomePage() {
 
   return (
     <main style={{ minHeight: '100vh', background: 'var(--bg)', padding: '0 0 64px' }}>
-      {/* Top bar */}
-      <div className="topbar">
-        <span className="t-display" style={{ fontSize: 13, color: 'var(--gold)', letterSpacing: '0.08em' }}>AVM</span>
-        <div style={{ width: 1, height: 20, background: 'var(--line-2)' }} />
-        <nav style={{ display: 'flex', gap: 2 }}>
-          {[
-            ['/', 'VALUATION'],
-            ['/benchmark', 'BENCHMARK'],
-            ['/scanner', 'SCANNER'],
-            ['/deals', 'DEALS'],
-            ['/model-card', 'MODEL CARD'],
-          ].map(([href, label]) => (
-            <a key={href} href={href} style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 10.5,
-              letterSpacing: '0.16em',
-              color: href === '/' ? 'var(--gold)' : 'var(--mute)',
-              padding: '0 12px',
-              height: 44,
-              display: 'flex',
-              alignItems: 'center',
-              borderBottom: href === '/' ? '2px solid var(--gold)' : '2px solid transparent',
-              textDecoration: 'none',
-            }}>{label}</a>
-          ))}
-        </nav>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div className="pill">
-            <div className="pill-pulse" />
-            LIVE · AUSTIN TX
-          </div>
-        </div>
-      </div>
-
       <div className="page-container">
         {/* Page heading */}
         <div className="page-heading-row">

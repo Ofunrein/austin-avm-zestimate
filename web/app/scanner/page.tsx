@@ -46,76 +46,138 @@ export default function ScannerPage() {
     a.click();
   };
 
+  const undervalued = results.filter((r) => r.is_undervalued);
+
   return (
-    <main className="min-h-screen bg-zinc-50">
-      <div className="max-w-5xl mx-auto px-4 py-12 space-y-8">
-        <div>
-          <a href="/" className="text-sm text-emerald-600 hover:underline">← Back</a>
-          <h1 className="text-3xl font-bold text-zinc-900 mt-2">Undervalued Property Scanner</h1>
-          <p className="text-zinc-500 mt-1">Upload a CSV of listings to detect properties priced below model estimate</p>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-zinc-200 p-6 shadow-sm">
-          <p className="text-sm text-zinc-600 mb-3">
-            CSV must include:{" "}
-            <code className="bg-zinc-100 px-1 rounded text-xs">
-              sqft_living, beds, baths_full, year_built, zip_code, lat, lng, list_price
-            </code>
-          </p>
-          <input
-            type="file"
-            accept=".csv"
-            onChange={handleFile}
-            className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
-          />
-          {loading && <p className="mt-3 text-sm text-zinc-500">Scanning…</p>}
-          {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
-        </div>
-
-        {results.length > 0 && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-zinc-600">
-                {results.filter((r) => r.is_undervalued).length} undervalued of {results.length} scanned
-              </p>
-              <button onClick={downloadCsv} className="text-sm text-emerald-600 hover:underline">
-                Download CSV
-              </button>
-            </div>
-            <div className="rounded-2xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-zinc-50 text-zinc-500 uppercase text-xs">
-                  <tr>
-                    <th className="px-4 py-3 text-left">#</th>
-                    <th className="px-4 py-3 text-right">List Price</th>
-                    <th className="px-4 py-3 text-right">AVM Estimate</th>
-                    <th className="px-4 py-3 text-right">Gap</th>
-                    <th className="px-4 py-3 text-left">Top Driver</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-zinc-100">
-                  {results.map((r, i) => (
-                    <tr key={i} className={r.is_undervalued ? "bg-emerald-50/40" : ""}>
-                      <td className="px-4 py-3 text-zinc-500">{r.index + 1}</td>
-                      <td className="px-4 py-3 text-right">{fmt(r.list_price)}</td>
-                      <td className="px-4 py-3 text-right font-medium">{fmt(r.predicted_price)}</td>
-                      <td className="px-4 py-3 text-right">
-                        <span className={`font-medium ${r.value_gap_pct > 0 ? "text-emerald-600" : "text-red-500"}`}>
-                          {r.value_gap_pct > 0 ? "+" : ""}{r.value_gap_pct.toFixed(1)}%
-                        </span>
-                        {r.is_undervalued && (
-                          <span className="ml-2 text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">
-                            undervalued
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-zinc-500 text-xs">{r.shap_top_driver ?? "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+    <main style={{ minHeight: "100vh", background: "var(--bg)", padding: "32px 28px 64px" }}>
+      <div className="page-container">
+        <div style={{ marginBottom: 28 }}>
+          <div className="t-eyebrow" style={{ marginBottom: 8 }}>SECTION 04 · BATCH SCANNER · UNDERVALUED DETECTION</div>
+          <h1 className="t-display" style={{ fontSize: 36, margin: "0 0 4px", color: "var(--ink)" }}>
+            Batch <span style={{ color: "var(--gold)" }}>Scanner</span>
+          </h1>
+          <div className="t-mono" style={{ fontSize: 12, color: "var(--mute)" }}>
+            UPLOAD CSV · PREDICT ALL · FLAG UNDERVALUED PROPERTIES
           </div>
+        </div>
+
+        {/* Upload panel */}
+        <div className="panel tick-corners scanlines" style={{ marginBottom: 18 }}>
+          <div className="panel-head">
+            <div className="panel-dot" />
+            <span className="panel-label">CSV · UPLOAD</span>
+            <span className="panel-meta">REQUIRED COLS: sqft_living, beds, baths_full, year_built, zip_code, lat, lng, list_price</span>
+          </div>
+          <div style={{ padding: "20px 20px 24px" }}>
+            <label style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 12,
+              padding: "40px 20px",
+              border: "1px dashed var(--line-2)",
+              cursor: "pointer",
+              background: "var(--bg-2)",
+            }}>
+              <span className="t-mono" style={{ fontSize: 28, color: "var(--mute)" }}>↑</span>
+              <span className="t-eyebrow">CLICK TO SELECT CSV FILE</span>
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleFile}
+                disabled={loading}
+                style={{ display: "none" }}
+              />
+            </label>
+            {loading && (
+              <div style={{ marginTop: 16, textAlign: "center" }}>
+                <span className="t-mono" style={{ fontSize: 12, color: "var(--gold)" }}>SCANNING… PREDICTING ALL PROPERTIES</span>
+              </div>
+            )}
+            {error && (
+              <p className="t-mono" style={{ marginTop: 12, fontSize: 11, color: "var(--red)" }}>ERR · {error}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Results */}
+        {results.length > 0 && (
+          <>
+            <div style={{ display: "flex", gap: 24, marginBottom: 18 }}>
+              <div className="panel" style={{ flex: 1, padding: "14px 16px", textAlign: "center" }}>
+                <div className="t-eyebrow" style={{ marginBottom: 4 }}>TOTAL SCANNED</div>
+                <div className="t-mono" style={{ fontSize: 22, color: "var(--ink)" }}>{results.length}</div>
+              </div>
+              <div className="panel" style={{ flex: 1, padding: "14px 16px", textAlign: "center", border: "1px solid var(--gold)" }}>
+                <div className="t-eyebrow" style={{ marginBottom: 4 }}>UNDERVALUED</div>
+                <div className="t-mono" style={{ fontSize: 22, color: "var(--gold)" }}>{undervalued.length}</div>
+              </div>
+              <div className="panel" style={{ flex: 1, padding: "14px 16px", textAlign: "center" }}>
+                <div className="t-eyebrow" style={{ marginBottom: 4 }}>AVG GAP</div>
+                <div className="t-mono" style={{ fontSize: 22, color: "var(--ink-2)" }}>
+                  {undervalued.length > 0
+                    ? `${(undervalued.reduce((s, r) => s + r.value_gap_pct, 0) / undervalued.length).toFixed(1)}%`
+                    : "—"}
+                </div>
+              </div>
+            </div>
+
+            <div className="panel tick-corners">
+              <div className="panel-head">
+                <div className="panel-dot" />
+                <span className="panel-label">SCAN RESULTS</span>
+                <span className="panel-meta">{results.length} PROPERTIES · {undervalued.length} FLAGGED</span>
+                <button
+                  onClick={downloadCsv}
+                  className="btn-ghost"
+                  style={{ marginLeft: 12, padding: "4px 10px", fontSize: 10 }}
+                >
+                  ↓ CSV
+                </button>
+              </div>
+              <div style={{ overflowX: "auto" }}>
+                <table className="term">
+                  <thead>
+                    <tr>
+                      <th>IDX</th>
+                      <th className="num">LIST PRICE</th>
+                      <th className="num">AVM ESTIMATE</th>
+                      <th className="num">GAP %</th>
+                      <th className="num">STATUS</th>
+                      <th>TOP DRIVER</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {results.map((r) => (
+                      <tr key={r.index}>
+                        <td style={{ color: "var(--mute)" }}>{String(r.index).padStart(3, "0")}</td>
+                        <td className="num">{fmt(r.list_price)}</td>
+                        <td className="num" style={{ color: "var(--gold)" }}>{fmt(r.predicted_price)}</td>
+                        <td className="num" style={{ color: r.is_undervalued ? "var(--gold)" : "var(--ink-2)" }}>
+                          {r.value_gap_pct > 0 ? "+" : ""}{r.value_gap_pct.toFixed(1)}%
+                        </td>
+                        <td className="num">
+                          {r.is_undervalued ? (
+                            <span style={{
+                              fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 600,
+                              color: "#1a1408", background: "var(--gold)",
+                              padding: "2px 8px", letterSpacing: "0.08em"
+                            }}>UNDERVALUED</span>
+                          ) : (
+                            <span className="t-eyebrow" style={{ color: "var(--mute)" }}>FAIR</span>
+                          )}
+                        </td>
+                        <td className="t-mono" style={{ fontSize: 11, color: "var(--mute)" }}>
+                          {r.shap_top_driver ?? "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
         )}
       </div>
     </main>
