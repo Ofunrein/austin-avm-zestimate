@@ -38,14 +38,31 @@ export function ExplanationCard({ prediction, zipCode, sqft, beds, baths, yearBu
 
   if (!loading && !explanation) return null;
 
+  const conf = prediction.confidence_score;
+  const isLowConf = conf < 40;
+  const isMedConf = conf >= 40 && conf < 70;
+
   return (
-    <div className="panel tick-corners scanlines">
+    <div className="panel tick-corners">
       <div className="panel-head">
-        <div className="panel-dot" />
+        <div className="panel-dot" style={isLowConf ? { background: "var(--mute-2)" } : {}} />
         <span className="panel-label">AI · ANALYSIS</span>
         <span className="panel-meta">CLAUDE HAIKU · SHAP-GROUNDED</span>
       </div>
       <div style={{ padding: '16px 18px 18px' }}>
+        {(isLowConf || isMedConf) && !loading && (
+          <div style={{
+            fontSize: 11, color: isLowConf ? "var(--red)" : "var(--mute)", marginBottom: 10,
+            padding: "6px 10px",
+            background: isLowConf ? "rgba(192,57,43,0.07)" : "var(--bg-2)",
+            borderLeft: `2px solid ${isLowConf ? "var(--red)" : "var(--line-2)"}`,
+            fontFamily: "var(--font-mono)", fontWeight: 700, letterSpacing: "0.1em",
+          }}>
+            {isLowConf
+              ? "⚠ LOW CONFIDENCE — THIS ESTIMATE IS DIRECTIONAL ONLY"
+              : "DIRECTIONAL ESTIMATE — MODERATE CONFIDENCE"}
+          </div>
+        )}
         {loading ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {[1, 0.85, 0.7].map((w, i) => (
@@ -53,7 +70,6 @@ export function ExplanationCard({ prediction, zipCode, sqft, beds, baths, yearBu
                 height: 12, borderRadius: 0,
                 background: 'var(--bg-3)',
                 width: `${w * 100}%`,
-                animation: `pulse 1.5s ease-in-out ${i * 0.15}s infinite`,
               }} />
             ))}
           </div>

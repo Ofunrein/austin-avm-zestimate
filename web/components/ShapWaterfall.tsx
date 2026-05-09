@@ -3,16 +3,29 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { ShapFeature } from "@/lib/api";
 
 const LABELS: Record<string, string> = {
-  sqft_living: "LIVING AREA",
-  dist_downtown_miles: "DIST · DOWNTOWN",
-  median_zip_price_90d: "ZIP MED · 90D",
-  age: "PROPERTY AGE",
-  beds: "BEDROOMS",
-  baths_full: "BATHROOMS",
-  zip_encoded: "ZIP · ENCODED",
-  lot_sqft: "LOT SIZE",
-  garage_spaces: "GARAGE",
-  has_pool: "POOL",
+  sqft_living:             "Living Area",
+  lot_sqft:                "Lot Size",
+  beds:                    "Bedrooms",
+  baths_full:              "Full Baths",
+  baths_half:              "Half Baths",
+  bath_total:              "Total Baths",
+  year_built:              "Year Built",
+  age:                     "Property Age",
+  effective_age:           "Effective Age",
+  stories:                 "Stories",
+  has_pool:                "Pool Present",
+  has_garage:              "Garage Present",
+  garage_spaces:           "Garage Spaces",
+  sqft_per_bed:            "Sqft per Bedroom",
+  lot_to_living_ratio:     "Lot/Living Ratio",
+  dist_downtown_miles:     "Distance to Downtown",
+  zip_income_score:        "ZIP Income Score",
+  zip_encoded:             "Neighborhood Signal",
+  median_zip_price_90d:    "Recent ZIP Median Price",
+  median_zip_ppsf_90d:     "Recent ZIP Price/Sqft",
+  price_per_sqft_assessed: "Assessed $/Sqft",
+  assessed_ratio:          "Assessed Value Ratio",
+  is_covid_period:         "Covid Period Flag",
 };
 
 export function ShapWaterfall({ features }: { features: ShapFeature[] }) {
@@ -34,7 +47,12 @@ export function ShapWaterfall({ features }: { features: ShapFeature[] }) {
           <BarChart data={data} layout="vertical" margin={{ left: 0 }}>
             <XAxis
               type="number"
-              tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
+              tickFormatter={(v: number) => {
+                const abs = Math.abs(v);
+                if (abs >= 1000) return `$${(v / 1000).toFixed(0)}k`;
+                if (abs >= 100)  return `$${v.toFixed(0)}`;
+                return `$${v.toFixed(1)}`;
+              }}
               tick={{ fontSize: 10, fill: 'var(--mute)', fontFamily: 'var(--font-mono)' }}
               axisLine={{ stroke: 'var(--line)' }}
               tickLine={false}
@@ -50,7 +68,14 @@ export function ShapWaterfall({ features }: { features: ShapFeature[] }) {
             <Tooltip
               contentStyle={{ background: 'var(--bg-2)', border: '1px solid var(--line)', borderRadius: 0, fontFamily: 'var(--font-mono)', fontSize: 11 }}
               labelStyle={{ color: 'var(--ink-2)' }}
-              formatter={(v) => typeof v === "number" ? [`$${Math.abs(v / 1000).toFixed(1)}k`, ""] : [String(v), ""]}
+              formatter={(v) => {
+                if (typeof v !== "number") return [String(v), ""];
+                const abs = Math.abs(v);
+                const label = abs >= 1000
+                  ? `${v > 0 ? "+" : ""}$${(v / 1000).toFixed(1)}k`
+                  : `${v > 0 ? "+" : ""}$${v.toFixed(0)}`;
+                return [label, "Impact"];
+              }}
             />
             <Bar dataKey="value" radius={0} barSize={12}>
               {data.map((entry, i) => (
