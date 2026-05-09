@@ -61,6 +61,11 @@ export function SearchResults({ results, total, query, onClear }: Props) {
                     ))}
                   </div>
                 </div>
+                {r.neighborhood_summary && (
+                  <div className="t-mono" style={{ fontSize: 10, color: 'var(--mute)', marginTop: 6 }}>
+                    {r.neighborhood_summary}
+                  </div>
+                )}
               </div>
             </div>
           ))}

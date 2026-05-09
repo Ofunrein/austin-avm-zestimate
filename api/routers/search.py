@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from api.schemas import SearchRequest, SearchResponse, SearchResult
 from api.services.llm import parse_search_query
+from api.services.neighborhood import fetch_neighborhood
 from api.db import db
 
 router = APIRouter()
@@ -75,4 +76,24 @@ def search(req: SearchRequest):
         results.sort(key=lambda x: x.value_gap_pct or 0, reverse=True)
 
     results = results[:20]
+
+    # Enrich top 5 results with neighborhood summary (one fetch per unique ZIP)
+    zip_contexts: dict[str, str] = {}
+    for r in results[:5]:
+        z = r.zip_code
+        if z and z not in zip_contexts:
+            try:
+                nd = fetch_neighborhood(z)
+                parts = []
+                if nd.get("walk_score"):
+                    parts.append(f"Walk {nd['walk_score']}")
+                if nd.get("school_rating"):
+                    parts.append(f"Schools {nd['school_rating']}")
+                zip_contexts[z] = " · ".join(parts) if parts else ""
+            except Exception:
+                zip_contexts[z] = ""
+    for r in results[:5]:
+        if r.zip_code:
+            r.neighborhood_summary = zip_contexts.get(r.zip_code, "")
+
     return SearchResponse(results=results, query_parsed=params, total=len(results))

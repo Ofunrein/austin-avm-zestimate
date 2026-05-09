@@ -151,6 +151,7 @@ export interface SearchResult {
   value_gap_pct?: number;
   confidence_score: number;
   shap_top_driver?: string;
+  neighborhood_summary?: string;
   created_at?: string;
 }
 
