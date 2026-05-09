@@ -1,6 +1,6 @@
 """Pydantic v2 schemas for all API endpoints."""
 from __future__ import annotations
-from typing import Literal
+from typing import Literal, Optional
 from pydantic import BaseModel, Field
 
 
@@ -79,16 +79,16 @@ class ScanItem(BaseModel):
 
 class BenchmarkResponse(BaseModel):
     model_version: str
-    test_medape: float
-    test_mae: float
-    test_rmse: float
-    test_within_5pct: float
-    test_within_10pct: float
-    n_test: int
-    baseline_zip_median_medape: float
-    baseline_ppsf_medape: float
+    test_medape: Optional[float] = None
+    test_mae: Optional[float] = None
+    test_rmse: Optional[float] = None
+    test_within_5pct: Optional[float] = None
+    test_within_10pct: Optional[float] = None
+    n_test: Optional[int] = None
+    baseline_zip_median_medape: Optional[float] = None
+    baseline_ppsf_medape: Optional[float] = None
     zillow_published_medape_reference: float = 4.5
-    by_zip: list[dict]
+    by_zip: list[dict] = []
 
 
 class ExplainRequest(BaseModel):

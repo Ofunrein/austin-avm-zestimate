@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import { predict, getComps, PredictionResponse, CompProperty, searchProperties, SearchResult } from "@/lib/api";
+import { useState, useEffect } from "react";
+import { predict, getComps, getBenchmark, PredictionResponse, CompProperty, searchProperties, SearchResult } from "@/lib/api";
 import { PredictionCard } from "@/components/PredictionCard";
 import { ShapWaterfall } from "@/components/ShapWaterfall";
 import { CompsTable } from "@/components/CompsTable";
@@ -35,6 +35,18 @@ export default function HomePage() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchTotal, setSearchTotal] = useState(0);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [heroStats, setHeroStats] = useState<{ medape: string; within10: string; nTest: string }>({
+    medape: "—", within10: "—", nTest: "—",
+  });
+  useEffect(() => {
+    getBenchmark().then(b => {
+      setHeroStats({
+        medape: b.test_medape != null ? `${b.test_medape.toFixed(2)}%` : "—",
+        within10: b.test_within_10pct != null ? `${(b.test_within_10pct * 100).toFixed(1)}%` : "—",
+        nTest: b.n_test != null ? b.n_test.toLocaleString() : "—",
+      });
+    }).catch(() => {});
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,17 +101,17 @@ export default function HomePage() {
           <div className="page-heading-stats">
             <div style={{ textAlign: 'right' }}>
               <div className="t-eyebrow">MEDAPE</div>
-              <div className="t-mono" style={{ fontSize: 20, color: 'var(--gold)' }}>12.67%</div>
+              <div className="t-mono" style={{ fontSize: 20, color: 'var(--gold)' }}>{heroStats.medape}</div>
             </div>
             <div style={{ width: 1, height: 32, background: 'var(--line-2)' }} />
             <div style={{ textAlign: 'right' }}>
               <div className="t-eyebrow">WITHIN 10%</div>
-              <div className="t-mono" style={{ fontSize: 20, color: 'var(--ink)' }}>45.2%</div>
+              <div className="t-mono" style={{ fontSize: 20, color: 'var(--ink)' }}>{heroStats.within10}</div>
             </div>
             <div style={{ width: 1, height: 32, background: 'var(--line-2)' }} />
             <div style={{ textAlign: 'right' }}>
               <div className="t-eyebrow">TEST SET</div>
-              <div className="t-mono" style={{ fontSize: 20, color: 'var(--ink)' }}>15,171</div>
+              <div className="t-mono" style={{ fontSize: 20, color: 'var(--ink)' }}>{heroStats.nTest}</div>
             </div>
           </div>
         </div>

@@ -17,17 +17,23 @@ export default async function BenchmarkPage() {
   }
 
   const chartData = [
-    { name: "THIS MODEL", medape: data.test_medape, color: 'var(--gold)' },
-    { name: "ZIP MEDIAN", medape: data.baseline_zip_median_medape || 8.5, color: '#4a4842' },
-    { name: "PPSF", medape: data.baseline_ppsf_medape || 9.2, color: '#3a3a45' },
+    ...(data.test_medape != null
+      ? [{ name: "THIS MODEL", medape: data.test_medape, color: 'var(--gold)' }]
+      : []),
+    ...(data.baseline_zip_median_medape != null
+      ? [{ name: "ZIP MEDIAN", medape: data.baseline_zip_median_medape, color: '#4a4842' }]
+      : []),
+    ...(data.baseline_ppsf_medape != null
+      ? [{ name: "PPSF", medape: data.baseline_ppsf_medape, color: '#3a3a45' }]
+      : []),
   ];
 
   const stats = [
-    { label: "MEDAPE", value: `${data.test_medape.toFixed(2)}%`, gold: true },
-    { label: "WITHIN 5%", value: `${(data.test_within_5pct * 100).toFixed(1)}%` },
-    { label: "WITHIN 10%", value: `${(data.test_within_10pct * 100).toFixed(1)}%` },
-    { label: "MAE", value: `$${(data.test_mae / 1000).toFixed(1)}K` },
-    { label: "TEST N", value: data.n_test.toLocaleString() },
+    { label: "MEDAPE", value: data.test_medape != null ? `${data.test_medape.toFixed(2)}%` : "—", gold: true },
+    { label: "WITHIN 5%", value: data.test_within_5pct != null ? `${(data.test_within_5pct * 100).toFixed(1)}%` : "—" },
+    { label: "WITHIN 10%", value: data.test_within_10pct != null ? `${(data.test_within_10pct * 100).toFixed(1)}%` : "—" },
+    { label: "MAE", value: data.test_mae != null ? `$${(data.test_mae / 1000).toFixed(1)}K` : "—" },
+    { label: "TEST N", value: data.n_test != null ? data.n_test.toLocaleString() : "—" },
     { label: "MODEL VER", value: `V${data.model_version}` },
   ];
 

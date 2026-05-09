@@ -51,14 +51,14 @@ export interface ZipRow {
 
 export interface BenchmarkResponse {
   model_version: string;
-  test_medape: number;
-  test_mae: number;
-  test_rmse: number;
-  test_within_5pct: number;
-  test_within_10pct: number;
-  n_test: number;
-  baseline_zip_median_medape: number;
-  baseline_ppsf_medape: number;
+  test_medape: number | null;
+  test_mae: number | null;
+  test_rmse: number | null;
+  test_within_5pct: number | null;
+  test_within_10pct: number | null;
+  n_test: number | null;
+  baseline_zip_median_medape: number | null;
+  baseline_ppsf_medape: number | null;
   zillow_published_medape_reference: number;
   by_zip: Array<{ zip_code: string; medape: number; n_sales: number; mae: number }>;
 }

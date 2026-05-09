@@ -12,13 +12,7 @@ def get_benchmark():
     residuals_path = Path(__file__).parents[2] / "ml/models/residuals.json"
 
     if not meta_path.exists():
-        return BenchmarkResponse(
-            model_version="not-trained",
-            test_medape=0, test_mae=0, test_rmse=0,
-            test_within_5pct=0, test_within_10pct=0, n_test=0,
-            baseline_zip_median_medape=0, baseline_ppsf_medape=0,
-            by_zip=[],
-        )
+        return BenchmarkResponse(model_version="not-trained")
 
     meta = json.loads(meta_path.read_text())
     residuals = json.loads(residuals_path.read_text()) if residuals_path.exists() else {}
@@ -26,13 +20,13 @@ def get_benchmark():
 
     return BenchmarkResponse(
         model_version=meta.get("version", "1.0.0"),
-        test_medape=meta.get("test_medape", 0),
-        test_mae=overall.get("mae", 0),
-        test_rmse=overall.get("rmse", 0),
-        test_within_5pct=overall.get("within_5pct", 0),
-        test_within_10pct=overall.get("within_10pct", 0),
-        n_test=overall.get("n", 0),
-        baseline_zip_median_medape=0,
-        baseline_ppsf_medape=0,
+        test_medape=meta.get("test_medape") or None,
+        test_mae=overall.get("mae") or None,
+        test_rmse=overall.get("rmse") or None,
+        test_within_5pct=overall.get("within_5pct") or None,
+        test_within_10pct=overall.get("within_10pct") or None,
+        n_test=overall.get("n") or None,
+        baseline_zip_median_medape=meta.get("test_medape_zip_median") or None,
+        baseline_ppsf_medape=meta.get("test_medape_ppsf") or None,
         by_zip=residuals.get("by_zip", []),
     )

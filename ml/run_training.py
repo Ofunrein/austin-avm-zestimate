@@ -128,6 +128,8 @@ def main():
         "lgb_params": lgb_params,
         "xgb_weight": xgb_weight,
         "test_medape": ens_medape,
+        "test_medape_zip_median": results.get("test_medape_zip_median"),
+        "test_medape_ppsf": results.get("test_medape_ppsf"),
         "residuals": residuals,
         "feature_cols": build_feature_matrix(test_df).columns.tolist(),
     }
