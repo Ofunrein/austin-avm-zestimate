@@ -57,8 +57,8 @@ def parse_row(row: dict) -> dict | None:
         address = (
             row.get("streetAddress") or row.get("ADDRESS") or ""
         ).strip()
-        beds = int(float(row.get("numBedrooms") or row.get("BEDS") or 0))
-        baths = float(row.get("numBathrooms") or row.get("BATHS") or 0)
+        beds = int(float(row.get("numOfBedrooms") or row.get("numBedrooms") or row.get("BEDS") or 0))
+        baths = float(row.get("numOfBathrooms") or row.get("numBathrooms") or row.get("BATHS") or 0)
         year = int(float(row.get("yearBuilt") or row.get("YEAR BUILT") or 2000))
         lot = float(row.get("lotSizeSqFt") or row.get("LOT SIZE") or 0)
         price = int(float(row.get("latestPrice") or row.get("PRICE") or 0))
