@@ -23,7 +23,7 @@ _APPRAISED_COLS = [
     "totalAppraisedValue", "appr_val",
 ]
 _ADDRESS_COLS = [
-    "situs_address", "SitusAddress", "SITUS_ADDRESS",
+    "address", "situs_address", "SitusAddress", "SITUS_ADDRESS",
     "situs_addr", "SitusAddr", "property_address",
     "PropertyAddress", "PROPERTY_ADDRESS", "addr",
 ]

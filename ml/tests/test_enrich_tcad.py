@@ -4,7 +4,7 @@ import pytest
 import pandas as pd
 from pathlib import Path
 
-TCAD_CSV = Path(__file__).parents[2] / "data/raw/tcad_parcels.csv"
+TCAD_CSV = Path(__file__).parents[1] / "data/raw/tcad_parcels.csv"
 
 
 def _make_csv(rows: list[dict]) -> str:
