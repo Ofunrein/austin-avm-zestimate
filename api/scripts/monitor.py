@@ -16,8 +16,8 @@ import time
 import urllib.request
 from datetime import datetime, timezone
 
-MIN_GAP_PCT = float(os.environ.get("MIN_GAP_PCT", "10.0"))
-MIN_CONFIDENCE = int(os.environ.get("MIN_CONFIDENCE", "70"))
+MIN_GAP_PCT = float(os.environ.get("MIN_GAP_PCT", "5.0"))
+MIN_CONFIDENCE = int(os.environ.get("MIN_CONFIDENCE", "10"))
 MAX_LISTINGS = int(os.environ.get("MAX_LISTINGS", "200"))
 EMAIL_GAP_THRESHOLD = float(os.environ.get("EMAIL_GAP_THRESHOLD", "15.0"))
 

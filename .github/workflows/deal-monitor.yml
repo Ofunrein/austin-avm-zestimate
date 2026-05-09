@@ -27,6 +27,8 @@ jobs:
           ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
           API_BASE: https://ofunrein-austin-avm-api.hf.space
           MAX_LISTINGS: "300"
+          MIN_GAP_PCT: "5.0"
+          MIN_CONFIDENCE: "10"
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
         run: python -m api.scripts.monitor
