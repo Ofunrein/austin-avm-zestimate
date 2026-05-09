@@ -1,21 +1,45 @@
 from fastapi import APIRouter
 import json
+import os
+import tempfile
 from pathlib import Path
 from api.schemas import BenchmarkResponse
 
 router = APIRouter()
 
+_meta_cache: dict | None = None
+_residuals_cache: dict | None = None
+
+
+def _load_json_artifact(filename: str) -> dict | None:
+    """Load JSON from local models dir or HF Hub."""
+    local = Path(__file__).parents[2] / "ml/models" / filename
+    if local.exists():
+        return json.loads(local.read_text())
+    hf_repo = os.getenv("HF_REPO_ID", "")
+    if hf_repo:
+        try:
+            from huggingface_hub import hf_hub_download
+            path = hf_hub_download(repo_id=hf_repo, filename=filename)
+            return json.loads(Path(path).read_text())
+        except Exception:
+            pass
+    return None
+
 
 @router.get("/benchmark", response_model=BenchmarkResponse)
 def get_benchmark():
-    meta_path = Path(__file__).parents[2] / "ml/models/meta.json"
-    residuals_path = Path(__file__).parents[2] / "ml/models/residuals.json"
+    global _meta_cache, _residuals_cache
+    if _meta_cache is None:
+        _meta_cache = _load_json_artifact("meta.json")
+    if _residuals_cache is None:
+        _residuals_cache = _load_json_artifact("residuals.json")
 
-    if not meta_path.exists():
+    if not _meta_cache:
         return BenchmarkResponse(model_version="not-trained")
 
-    meta = json.loads(meta_path.read_text())
-    residuals = json.loads(residuals_path.read_text()) if residuals_path.exists() else {}
+    meta = _meta_cache
+    residuals = _residuals_cache or {}
     overall = residuals.get("overall", {})
 
     return BenchmarkResponse(
