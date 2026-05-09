@@ -16,7 +16,7 @@ def explain(req: ExplainRequest):
             if data.get("walk_score"):
                 parts.append(f"Walk Score {data['walk_score']}")
             if data.get("school_rating"):
-                parts.append(f"schools {data['school_rating']}/10")
+                parts.append(f"school district rating {data['school_rating']}")
             if data.get("median_income"):
                 parts.append(f"median income ${data['median_income']:,}")
             ctx = ", ".join(parts) if parts else ""

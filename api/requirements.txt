@@ -8,6 +8,7 @@ pandas>=2.0
 numpy>=1.26
 scikit-learn>=1.4
 joblib>=1.4
+pyarrow>=14.0
 huggingface-hub>=0.23
 protobuf==3.20.3
 anthropic>=0.40.0

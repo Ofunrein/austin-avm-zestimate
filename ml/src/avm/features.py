@@ -100,7 +100,10 @@ def add_assessed_features(df: pd.DataFrame) -> pd.DataFrame:
         df["price_per_sqft_assessed"] = (
             df["assessed_value"] / df["sqft_living"].replace(0, 1)
         ).clip(0, 2000)
-        df["assessed_ratio"] = (df["assessed_value"] / df["sale_price"].replace(0, 1)).clip(0, 5)
+        if "sale_price" in df.columns:
+            df["assessed_ratio"] = (df["assessed_value"] / df["sale_price"].replace(0, 1)).clip(0, 5)
+        else:
+            df["assessed_ratio"] = 0.0
     else:
         df["price_per_sqft_assessed"] = 0.0
         df["assessed_ratio"] = 0.0

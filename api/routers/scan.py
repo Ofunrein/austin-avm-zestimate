@@ -7,7 +7,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parents[2] / "ml/src"))
 from avm.features import add_structural, add_location, add_market_features, add_assessed_features, build_feature_matrix
 from avm.shap_gen import make_explainer, top_shap_features
-from api.model_loader import load_all_models
+from api.routers.predict import get_models
 from api.schemas import ScanRequest, ScanItem
 
 router = APIRouter()
@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.post("/scan", response_model=list[ScanItem])
 def scan(req: ScanRequest):
-    xgb_model, lgb_model, q_low, q_high, meta, zip_encoder = load_all_models()
+    xgb_model, lgb_model, q_low, q_high, meta, zip_encoder = get_models()
     w = meta.get("xgb_weight", 0.5)
     explainer = make_explainer(xgb_model)
     results = []

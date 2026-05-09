@@ -74,6 +74,7 @@ create table if not exists deals (
   condition_note text,
   shap_top_driver text,
   deal_score numeric,
+  data_source text default 'kaggle_historical',
   alerted_at timestamptz,
   created_at timestamptz default now()
 );
@@ -81,6 +82,9 @@ create table if not exists deals (
 create index if not exists idx_neighborhood_created on neighborhood_cache(created_at desc);
 create index if not exists idx_deals_created on deals(created_at desc);
 create index if not exists idx_deals_gap on deals(value_gap_pct desc);
+
+-- Backfill: add data_source to existing deals table (no-op if column already exists)
+alter table deals add column if not exists data_source text default 'kaggle_historical';
 
 -- UNIQUE constraints required for upsert on_conflict="address"
 -- NOTE: Must also be run manually in the Supabase dashboard SQL editor
