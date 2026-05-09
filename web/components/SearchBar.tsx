@@ -7,9 +7,9 @@ interface Props {
 }
 
 const SUGGESTIONS = [
-  '3BR under $400k in 78704',
-  'undervalued homes near downtown',
-  'pool homes 78745 built after 2010',
+  "3BR under $500k in 78744",
+  "undervalued homes in 78725",
+  "pool homes 78750 built after 2010",
 ];
 
 export function SearchBar({ onSearch, loading }: Props) {

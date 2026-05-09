@@ -23,7 +23,7 @@ KAGGLE_DATASET = "ericpierce/austinhousingprices"
 API_BASE = os.environ.get("API_BASE", "http://localhost:7860")
 SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
-MAX_ROWS = int(os.environ.get("SEED_MAX_ROWS", "500"))
+MAX_ROWS = int(os.environ.get("SEED_MAX_ROWS", "2000"))
 
 
 def download_kaggle_csv() -> list[dict]:
@@ -102,7 +102,7 @@ def predict_property(prop: dict) -> dict | None:
 def upsert_batch(records: list[dict], db) -> None:
     for i in range(0, len(records), 100):
         batch = records[i : i + 100]
-        db.table("predictions").upsert(batch, on_conflict="address").execute()
+        db.table("predictions").upsert(batch).execute()
         print(f"  upserted {min(i + 100, len(records))}/{len(records)}")
 
 

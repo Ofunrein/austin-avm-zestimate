@@ -106,64 +106,53 @@ def main() -> None:
         import sys; sys.exit(1)
 
     from supabase import create_client
-    from anthropic import Anthropic
-    from api.scripts.seed_inventory import download_kaggle_csv, parse_row, predict_property
 
     db = create_client(SUPABASE_URL, SUPABASE_KEY)
-    anthropic = Anthropic(api_key=ANTHROPIC_API_KEY)
 
-    print("Downloading Kaggle Austin listings...")
-    rows = download_kaggle_csv()
-    print(f"{len(rows)} listings downloaded. Processing up to {MAX_LISTINGS}...")
+    print("Querying predictions table for deal candidates...")
+    rows = (
+        db.table("predictions")
+        .select("id,address,zip_code,list_price,predicted_price,confidence_score,beds,baths_full,sqft_living,year_built,shap_json")
+        .not_.is_("list_price", "null")
+        .gte("confidence_score", MIN_CONFIDENCE)
+        .limit(500)
+        .execute()
+        .data
+    )
+    print(f"{len(rows)} predictions with list_price found")
 
     deals: list[dict] = []
-    for i, row in enumerate(rows[:MAX_LISTINGS]):
-        parsed = parse_row(row)
-        if not parsed or not parsed.get("list_price"):
+    for r in rows:
+        list_price = r.get("list_price")
+        predicted = r.get("predicted_price", 0)
+        if not list_price or list_price <= 0:
             continue
-        pred = predict_property(parsed)
-        if not pred:
-            continue
-
-        list_price = parsed["list_price"]
-        predicted = pred["predicted_price"]
-        confidence = pred["confidence_score"]
         gap = round((predicted - list_price) / list_price * 100, 1)
+        if gap < MIN_GAP_PCT:
+            continue
+        shap_json = r.get("shap_json") or []
+        shap_driver = shap_json[0]["feature"] if shap_json else None
+        deals.append({
+            "address": r.get("address"),
+            "zip_code": r.get("zip_code"),
+            "list_price": list_price,
+            "predicted_price": predicted,
+            "value_gap_pct": gap,
+            "confidence_score": r.get("confidence_score", 0),
+            "beds": r.get("beds"),
+            "baths_full": r.get("baths_full"),
+            "sqft_living": r.get("sqft_living"),
+            "year_built": r.get("year_built"),
+            "shap_top_driver": shap_driver,
+            "deal_score": round(gap * r.get("confidence_score", 0) / 100, 2),
+        })
 
-        if gap >= MIN_GAP_PCT and confidence >= MIN_CONFIDENCE:
-            shap_driver = pred["shap_top5"][0]["feature"] if pred["shap_top5"] else None
-            deals.append({
-                "address": parsed["address"],
-                "zip_code": parsed["zip_code"],
-                "list_price": list_price,
-                "predicted_price": predicted,
-                "value_gap_pct": gap,
-                "confidence_score": confidence,
-                "beds": parsed["beds"],
-                "baths_full": parsed["baths_full"],
-                "sqft_living": parsed["sqft_living"],
-                "year_built": parsed["year_built"],
-                "photo_url": parsed.get("photo_url"),
-                "shap_top_driver": shap_driver,
-                "deal_score": round(gap * confidence / 100, 2),
-            })
-
-        if (i + 1) % 50 == 0:
-            print(f"  processed {i + 1}/{min(MAX_LISTINGS, len(rows))}")
-        time.sleep(0.05)
-
-    print(f"Found {len(deals)} deals above {MIN_GAP_PCT}% gap. Analyzing photos...")
-
+    print(f"Found {len(deals)} deals above {MIN_GAP_PCT}% gap.")
     deals.sort(key=lambda d: d["deal_score"], reverse=True)
-    for deal in deals[:20]:
-        note = analyze_photo(deal.get("photo_url", ""), anthropic)
-        deal["condition_note"] = note
-        if note:
-            print(f"  Photo analyzed: {deal['address'][:30]}...")
 
     print("Upserting deals to Supabase...")
     if deals:
-        db.table("deals").upsert(deals, on_conflict="address").execute()
+        db.table("deals").upsert(deals).execute()
 
     email_deals = [d for d in deals if d["value_gap_pct"] >= EMAIL_GAP_THRESHOLD]
     if email_deals:
