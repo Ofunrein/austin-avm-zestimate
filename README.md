@@ -160,13 +160,20 @@ For context: Zillow's published national MedAPE is ~4.5%, but they have 20+ year
 
 ---
 
-## What's next (roadmap)
+## What's shipped
 
-- [ ] LLM SHAP explanations (Claude Haiku)
-- [ ] Natural language search ("3BR under $400k in 78704")
-- [ ] RAG neighborhood context (school ratings, walkability, income, crime)
-- [ ] Agentic deal monitor (weekly Redfin scan + email alerts)
-- [ ] TCAD (Travis County) data integration for better accuracy
+- [x] LLM SHAP explanations (Claude Haiku) — `/explain`
+- [x] Natural language search — `/search` (beds, price, ZIP, year built, undervalued filter)
+- [x] RAG neighborhood context — Walk Score, TEA school ratings, Census ACS income, Austin crime data
+- [x] Deal monitor — weekly GitHub Actions scan, `/deals`, email alerts via SendGrid
+- [x] Comparable sales — `/comps` (requires training artifact)
+
+## What's next
+
+- [ ] Live active listings feed (Redfin/MLS) to replace historical Kaggle data for deals
+- [ ] TCAD (Travis County) assessed-value data integration for accuracy improvement
+- [ ] Nationwide expansion beyond Austin TX
+- [ ] Confidence score recalibration (current scores are low for historical backtest data)
 
 ---
 
