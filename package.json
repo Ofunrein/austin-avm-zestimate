@@ -1,0 +1,14 @@
+{
+  "name": "avm-zestimate",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail \"npm run dev --prefix web\" \"uvicorn api.main:app --reload --port 7860 --host 0.0.0.0\"",
+    "dev:api": "uvicorn api.main:app --reload --port 7860 --host 0.0.0.0",
+    "dev:web": "npm run dev --prefix web",
+    "install:web": "npm install --prefix web",
+    "setup": "pip install -e ./ml && pip install -r api/requirements.txt && npm install --prefix web && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}

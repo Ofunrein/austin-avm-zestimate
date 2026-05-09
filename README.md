@@ -21,6 +21,7 @@ Give it a property — square footage, bedrooms, bathrooms, year built, ZIP code
 - **Why** — which features drove the price up or down (powered by SHAP)
 - **Comparable sales** — similar homes that sold nearby
 - **AI explanation** — plain English narrative from Claude interpreting the valuation
+- **Three modes** — Value a Property, Browse Opportunities, Upload Listings
 
 ---
 
@@ -29,10 +30,11 @@ Give it a property — square footage, bedrooms, bathrooms, year built, ZIP code
 An Automated Valuation Model predicts real estate prices using machine learning instead of a human appraiser. Zillow calls theirs the "Zestimate." Banks use AVMs for mortgage decisions. This one is trained on Austin TX sales data.
 
 **How it works:**
-1. Trained on ~10,000 historical Austin home sales
-2. Learns patterns: bigger homes cost more, older homes cost less, some ZIP codes command premiums
-3. Given a new property, applies those patterns to estimate value
-4. Uses two models (XGBoost + LightGBM) and averages them for better accuracy
+1. Trained on ~15,000 historical Austin home sales (2018–2024)
+2. Enriched with Travis County Appraisal District (TCAD) assessed values and Census ACS 2023 median household income by ZIP
+3. Learns patterns: bigger homes cost more, older homes cost less, some ZIP codes command premiums
+4. Given a new property, applies those patterns to estimate value
+5. Uses two models (XGBoost + LightGBM) and averages them for better accuracy
 
 ---
 
@@ -42,7 +44,7 @@ An Automated Valuation Model predicts real estate prices using machine learning 
 - **Confidence intervals** — instead of one number, gives a probable range using quantile regression
 - **AI narrative** — Claude (the AI) reads the SHAP values and writes a 2-sentence explanation in plain English
 - **Natural language search** — type "3BR under $400k in 78704 with pool" and get ranked results
-- **Deal monitor** — weekly scan of Austin listings to flag undervalued properties
+- **Opportunity browser (historical backtest mode)** — browse Austin listings to flag undervalued properties
 
 ---
 
@@ -140,17 +142,17 @@ Trained and evaluated on Austin TX sales data with a temporal split (train on ol
 
 | Metric | Value | What it means |
 |--------|-------|---------------|
-| MedAPE | ~12-13% | Median absolute % error — half of predictions are within 12-13% of actual price |
+| MedAPE | 12.73% (15,151 records) | Median absolute % error — half of predictions are within 12.73% of actual price |
 | Within 10% | ~45% | 45% of predictions land within 10% of sale price |
 | Within 20% | ~72% | 72% of predictions land within 20% of sale price |
 
-For context: Zillow's published national MedAPE is ~4.5%, but they have 20+ years of MLS data across all markets. On a single city with free public data, 12-13% is competitive.
+For context: Zillow's published national MedAPE is ~4.5%, but they have 20+ years of MLS data across all markets. On a single city with free public data, 12.73% is competitive.
 
 ---
 
 ## How the ML model works (simplified)
 
-1. **Data:** ~10k Austin home sales from Kaggle (2018–2021)
+1. **Data:** ~15,000 Austin home sales (2018–2024), enriched with TCAD parcel data + Census ACS income scores
 2. **Features used:** sqft, bedrooms, bathrooms, year built, ZIP code, lot size, garage spaces, pool, stories, price per sqft ratio, market median by ZIP, home age
 3. **Two models trained:** XGBoost and LightGBM (gradient boosted decision trees)
 4. **Tuning:** Optuna tries 50 different hyperparameter combinations, picks the best
