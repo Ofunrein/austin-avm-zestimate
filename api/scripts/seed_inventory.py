@@ -111,6 +111,12 @@ def predict_property(prop: dict) -> dict | None:
 def upsert_batch(records: list[dict], db) -> None:
     for i in range(0, len(records), 100):
         batch = records[i : i + 100]
+        # Deduplicate by address within batch (last wins)
+        seen = {}
+        for r in batch:
+            if r.get("address"):
+                seen[r["address"]] = r
+        batch = list(seen.values())
         db.table("predictions").upsert(batch, on_conflict="address").execute()
         print(f"  upserted {min(i + 100, len(records))}/{len(records)}")
 
