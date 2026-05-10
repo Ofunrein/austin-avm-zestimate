@@ -19,7 +19,7 @@ def search(req: SearchRequest):
 
     q = db.table("predictions").select(
         "id,address,zip_code,sqft_living,beds,baths_full,year_built,"
-        "predicted_price,list_price,confidence_score,shap_json,created_at"
+        "predicted_price,list_price,confidence_score,shap_json,photo_url,created_at"
     )
 
     if params.get("beds_min"):
@@ -68,6 +68,7 @@ def search(req: SearchRequest):
             value_gap_pct=gap,
             confidence_score=r.get("confidence_score", 0),
             shap_top_driver=top_driver,
+            photo_url=r.get("photo_url"),
             created_at=str(r.get("created_at", "")),
         ))
 

@@ -127,6 +127,7 @@ class SearchResult(BaseModel):
     confidence_score: int
     shap_top_driver: str | None = None
     neighborhood_summary: str | None = None
+    photo_url: str | None = None
     created_at: str | None = None
 
 
