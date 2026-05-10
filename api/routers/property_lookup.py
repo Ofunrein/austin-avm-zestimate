@@ -134,47 +134,43 @@ def _apify_zillow_lookup(address: str) -> dict | None:
     token = _apify_token()
     if not token:
         return None
-    payload = json.dumps({
-        "searchTerm": address,
-        "maxItems": 1,
-        "extractPropertyDetails": True,
-    }).encode()
     url = (
-        f"https://api.apify.com/v2/acts/{ACTOR_ID}/run-sync-get-dataset-items"
-        f"?token={token}&timeout=25&memory=256"
+        "https://api.apify.com/v2/acts/maxcopell~zillow-detail-scraper/run-sync-get-dataset-items"
+        f"?token={token}&timeout=30&memory=256"
     )
-    try:
-        req = urllib.request.Request(
-            url, data=payload,
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            items = json.loads(resp.read())
-        if not items:
-            return None
-        item = items[0]
-        sqft = item.get("livingArea") or item.get("livingAreaValue")
-        beds = item.get("bedrooms") or item.get("beds")
-        baths = item.get("bathrooms") or item.get("baths")
-        year = item.get("yearBuilt")
-        if not any([sqft, beds, baths, year]):
-            return None
-        img = (
-            item.get("imgSrc")
-            or item.get("hdpData", {}).get("homeInfo", {}).get("imgSrc")
-            or (item.get("images") or [None])[0]
-            or ((item.get("photos") or [{}])[0].get("url") if item.get("photos") else None)
-        )
-        return {
-            "sqft_living": float(sqft) if sqft else None,
-            "beds": int(beds) if beds else None,
-            "baths_full": float(baths) if baths else None,
-            "year_built": int(year) if year else None,
-            "image_url": img if isinstance(img, str) and img.startswith("http") else None,
-        }
-    except Exception:
-        return None
+    for status in ("FOR_SALE", "RECENTLY_SOLD"):
+        try:
+            payload = json.dumps({"addresses": [address], "propertyStatus": status}).encode()
+            req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+            with urllib.request.urlopen(req, timeout=35) as resp:
+                items = json.loads(resp.read())
+            if not items:
+                continue
+            item = items[0]
+            sqft = item.get("livingArea") or item.get("livingAreaValue")
+            beds = item.get("bedrooms") or item.get("beds")
+            baths = item.get("bathrooms") or item.get("baths")
+            year = item.get("yearBuilt")
+            if not any([sqft, beds, baths, year]):
+                continue
+            img = (
+                item.get("imgSrc")
+                or item.get("hdpData", {}).get("homeInfo", {}).get("imgSrc")
+                or (item.get("miniCardPhotos") or [{}])[0].get("url")
+                or (item.get("photos") or [{}])[0].get("url")
+                or (item.get("images") or [None])[0]
+            )
+            return {
+                "sqft_living": float(sqft) if sqft else None,
+                "beds": int(beds) if beds else None,
+                "baths_full": float(baths) if baths else None,
+                "year_built": int(year) if year else None,
+                "image_url": img if isinstance(img, str) and img.startswith("http") else None,
+            }
+        except Exception as e:
+            print(f"  apify {status} failed: {e}")
+            continue
+    return None
 
 
 @router.post("/property-lookup", response_model=LookupResponse)
