@@ -29,6 +29,34 @@ export function OpportunityCard({ item }: { item: OpportunityItem }) {
 
   return (
     <div className="panel tick-corners" style={{ overflow: "hidden" }}>
+      {item.photo_url && (
+        <div style={{
+          position: "relative",
+          width: "100%",
+          height: 140,
+          overflow: "hidden",
+          borderRadius: "4px 4px 0 0",
+        }}>
+          <img
+            src={item.photo_url}
+            alt={item.address || "Property"}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }}
+          />
+          <div style={{
+            position: "absolute", inset: 0,
+            background: "linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.6) 100%)",
+          }} />
+          <div style={{
+            position: "absolute", bottom: 8, left: 10, right: 10,
+            fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700,
+            color: "rgba(255,255,255,0.85)", letterSpacing: "0.08em",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }}>
+            {(item.address || "").toUpperCase()}
+          </div>
+        </div>
+      )}
       <div className="panel-head">
         <div className="panel-dot" style={isHot ? { background: "var(--gold)" } : {}} />
         <span className="panel-label" style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
