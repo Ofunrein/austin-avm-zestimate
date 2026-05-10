@@ -48,6 +48,20 @@ export function SearchResults({ results, total, query, onClear }: Props) {
         <div className="grid-search-results">
           {results.map((r) => (
             <div key={r.id} className="panel tick-corners" style={{ padding: 0 }}>
+              {r.photo_url && (
+                <div style={{ position: "relative", width: "100%", height: 140, overflow: "hidden", borderRadius: "4px 4px 0 0" }}>
+                  <img
+                    src={r.photo_url}
+                    alt={r.address || "Property"}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }}
+                  />
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.6) 100%)" }} />
+                  <div style={{ position: "absolute", bottom: 8, left: 10, right: 10, fontFamily: "var(--font-mono)", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.85)", letterSpacing: "0.08em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {(r.address || "").toUpperCase()}
+                  </div>
+                </div>
+              )}
               <div style={{ padding: '14px 14px 12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                   <p className="t-mono" style={{ fontSize: 11, color: 'var(--ink-2)', margin: 0, maxWidth: 160, lineHeight: 1.4 }}>
