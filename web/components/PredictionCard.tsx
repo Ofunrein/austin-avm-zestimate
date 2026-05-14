@@ -1,6 +1,8 @@
 "use client";
 import { PredictionResponse } from "@/lib/api";
 
+const proxyImg = (url?: string) =>
+  url ? `/api/img-proxy?url=${encodeURIComponent(url)}` : undefined;
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
@@ -31,7 +33,7 @@ export function PredictionCard({ result, imageUrl, address: _address }: { result
 
   return (
     <div className="panel tick-corners" style={{ background: "var(--bg-1)" }}>
-      {imageUrl && (
+      {proxyImg(imageUrl) && (
         <div style={{
           position: "relative",
           width: "100%",
@@ -40,7 +42,7 @@ export function PredictionCard({ result, imageUrl, address: _address }: { result
           borderRadius: "4px 4px 0 0",
         }}>
           <img
-            src={imageUrl}
+            src={proxyImg(imageUrl)}
             alt="Property"
             referrerPolicy="no-referrer"
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}

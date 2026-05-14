@@ -1,6 +1,9 @@
 "use client";
 import { OpportunityItem } from "@/lib/api";
 
+const proxyImg = (url?: string | null) =>
+  url ? `/api/img-proxy?url=${encodeURIComponent(url)}` : undefined;
+
 const fmt = (n: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
 
@@ -30,7 +33,7 @@ export function OpportunityCard({ item }: { item: OpportunityItem }) {
 
   return (
     <div className="panel tick-corners" style={{ overflow: "hidden" }}>
-      {item.photo_url && (
+      {proxyImg(item.photo_url) && (
         <div style={{
           position: "relative",
           width: "100%",
@@ -39,7 +42,7 @@ export function OpportunityCard({ item }: { item: OpportunityItem }) {
           borderRadius: "4px 4px 0 0",
         }}>
           <img
-            src={item.photo_url}
+            src={proxyImg(item.photo_url)}
             alt={item.address || "Property"}
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             referrerPolicy="no-referrer"
