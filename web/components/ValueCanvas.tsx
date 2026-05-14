@@ -246,7 +246,7 @@ export function ValueCanvas() {
         {result && geo && (
           <div style={{ marginTop: 24 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 18 }}>
-              <PredictionCard result={result} imageUrl={geo.image_url} />
+              <PredictionCard result={result} imageUrl={geo.image_url} address={address} />
               <ExplanationCard
                 prediction={result}
                 zipCode={geo.zip_code}

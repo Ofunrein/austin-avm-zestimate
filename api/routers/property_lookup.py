@@ -42,7 +42,30 @@ class LookupResponse(BaseModel):
     source: str = "geocode_only"
 
 
-def _supabase_lookup(address: str) -> dict | None:
+def _is_dead_photo_url(url: str | None) -> bool:
+    """Old Kaggle homeImage format OR missing — need fresh Apify image."""
+    if not url:
+        return True
+    return "zillowstatic.com/fp/" in url and url.endswith("_p_f.jpg")
+
+
+def _patch_supabase_photo(address: str, photo_url: str) -> None:
+    """Write fresh photo_url back to predictions table."""
+    if not SUPABASE_URL or not SUPABASE_KEY:
+        return
+    try:
+        encoded = urllib.parse.quote(address)
+        url = f"{SUPABASE_URL}/rest/v1/predictions?address=eq.{encoded}"
+        payload = json.dumps({"photo_url": photo_url}).encode()
+        req = urllib.request.Request(url, data=payload, method="PATCH", headers={
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+            "Content-Type": "application/json",
+            "Prefer": "return=minimal",
+        })
+        urllib.request.urlopen(req, timeout=5)
+    except Exception:
+        pass
     """Check predictions table for cached property data."""
     if not SUPABASE_URL or not SUPABASE_KEY:
         return None
@@ -153,17 +176,13 @@ def _apify_zillow_lookup(address: str) -> dict | None:
             year = item.get("yearBuilt")
             if not any([sqft, beds, baths, year]):
                 continue
+            # Prefer responsivePhotos[0].url — direct CDN link confirmed live
             img = (
-                item.get("hiResImageLink")
+                ((item.get("responsivePhotos") or [{}])[0].get("url"))
+                or item.get("hiResImageLink")
                 or item.get("desktopWebHdpImageLink")
-                or item.get("mediumImageLink")
                 or item.get("imgSrc")
-                or item.get("hdpData", {}).get("homeInfo", {}).get("imgSrc")
-                or (item.get("thumb") or [{}])[0].get("url")
                 or (item.get("responsivePhotos") or [{}])[0].get("mixedSources", {}).get("jpeg", [{}])[-1].get("url")
-                or (item.get("miniCardPhotos") or [{}])[0].get("url")
-                or (item.get("photos") or [{}])[0].get("url")
-                or (item.get("images") or [None])[0]
             )
             return {
                 "sqft_living": float(sqft) if sqft else None,
@@ -199,7 +218,15 @@ def property_lookup(req: LookupRequest):
         result.beds = cached.get("beds")
         result.baths_full = cached.get("baths_full")
         result.year_built = cached.get("year_built")
-        result.image_url = cached.get("image_url")
+        cached_img = cached.get("image_url")
+        # Dead Kaggle URL — fetch a fresh one from Apify and write it back
+        if _is_dead_photo_url(cached_img):
+            enriched = _apify_zillow_lookup(req.address)
+            fresh_img = enriched.get("image_url") if enriched else None
+            if fresh_img:
+                _patch_supabase_photo(req.address, fresh_img)
+                cached_img = fresh_img
+        result.image_url = cached_img
         result.source = "supabase_cache"
         return result
 

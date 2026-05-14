@@ -1,6 +1,14 @@
 "use client";
 import { OpportunityItem } from "@/lib/api";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:7860";
+function proxyImg(url?: string | null, address?: string | null): string {
+  const params = new URLSearchParams();
+  if (url) params.set("url", url);
+  if (address) params.set("address", address);
+  return `${API_BASE}/img-proxy?${params}`;
+}
+
 const fmt = (n: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
 
@@ -30,7 +38,7 @@ export function OpportunityCard({ item }: { item: OpportunityItem }) {
 
   return (
     <div className="panel tick-corners" style={{ overflow: "hidden" }}>
-      {item.photo_url && (
+      {(item.photo_url || item.address) && (
         <div style={{
           position: "relative",
           width: "100%",
@@ -39,7 +47,7 @@ export function OpportunityCard({ item }: { item: OpportunityItem }) {
           borderRadius: "4px 4px 0 0",
         }}>
           <img
-            src={item.photo_url}
+            src={proxyImg(item.photo_url, item.address)}
             alt={item.address || "Property"}
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             referrerPolicy="no-referrer"

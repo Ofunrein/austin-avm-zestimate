@@ -1,6 +1,15 @@
 "use client";
 import { PredictionResponse } from "@/lib/api";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:7860";
+function proxyImg(url?: string, address?: string): string | undefined {
+  if (!url && !address) return undefined;
+  const params = new URLSearchParams();
+  if (url) params.set("url", url);
+  if (address) params.set("address", address);
+  return `${API_BASE}/img-proxy?${params}`;
+}
+
 const fmt = (n: number) =>
   new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
 
@@ -21,7 +30,7 @@ const TIER_CONFIG = {
   low:    { label: "LOW-CONFIDENCE ESTIMATE",         badge: "⚠ DIRECTIONAL ONLY",    color: "var(--mute)" },
 };
 
-export function PredictionCard({ result, imageUrl }: { result: PredictionResponse; imageUrl?: string }) {
+export function PredictionCard({ result, imageUrl, address }: { result: PredictionResponse; imageUrl?: string; address?: string }) {
   const t = tier(result.confidence_score);
   const cfg = TIER_CONFIG[t];
   const segs = 20;
@@ -30,7 +39,7 @@ export function PredictionCard({ result, imageUrl }: { result: PredictionRespons
 
   return (
     <div className="panel tick-corners" style={{ background: "var(--bg-1)" }}>
-      {imageUrl && (
+      {proxyImg(imageUrl, address) && (
         <div style={{
           position: "relative",
           width: "100%",
@@ -39,7 +48,7 @@ export function PredictionCard({ result, imageUrl }: { result: PredictionRespons
           borderRadius: "4px 4px 0 0",
         }}>
           <img
-            src={imageUrl}
+            src={proxyImg(imageUrl, address)}
             alt="Property"
             referrerPolicy="no-referrer"
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
