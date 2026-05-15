@@ -1,5 +1,5 @@
 import { getOpportunities } from "@/lib/api";
-import { OpportunityCard } from "@/components/OpportunityCard";
+import { OpportunityGallery } from "@/components/OpportunityGallery";
 
 export const revalidate = 120;
 
@@ -45,11 +45,7 @@ export default async function OpportunitiesPage() {
             </p>
           </div>
         ) : (
-          <div className="grid-deals">
-            {items.map((item) => (
-              <OpportunityCard key={item.id} item={item} />
-            ))}
-          </div>
+          <OpportunityGallery items={items} />
         )}
       </div>
     </main>
