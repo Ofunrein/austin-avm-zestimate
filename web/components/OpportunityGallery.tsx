@@ -119,7 +119,7 @@ function Lightbox({
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: "100%", maxWidth: 640,
+          width: "100%", maxWidth: 720,
           background: "var(--bg-1)",
           border: "1px solid var(--line-2)",
           boxShadow: "0 32px 80px rgba(0,0,0,0.6)",
@@ -143,12 +143,12 @@ function Lightbox({
 
         {/* Hero image */}
         {img && (
-          <div style={{ position: "relative", width: "100%", height: 320, overflow: "hidden" }}>
+          <div style={{ position: "relative", width: "100%", background: "#000" }}>
             <img
               src={img}
               alt={item.address || "Property"}
               referrerPolicy="no-referrer"
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              style={{ width: "100%", maxHeight: 480, objectFit: "contain", display: "block" }}
               onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }}
             />
             <div style={{
