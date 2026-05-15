@@ -1,14 +1,17 @@
 import json
 import os
-from anthropic import Anthropic
+from openai import OpenAI
 
-_client: Anthropic | None = None
+_client: OpenAI | None = None
 
 
-def _get_client() -> Anthropic:
+def _get_client() -> OpenAI:
     global _client
     if _client is None:
-        _client = Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+        _client = OpenAI(
+            api_key=os.environ["GROQ_API_KEY"],
+            base_url="https://api.groq.com/openai/v1",
+        )
     return _client
 
 
@@ -39,13 +42,13 @@ def explain_prediction(
         f"Key value drivers:\n{shap_lines}\n"
         f"Neighborhood: {neighborhood_context or 'No neighborhood data available'}"
     )
-    msg = _get_client().messages.create(
-        model="claude-haiku-4-5",
+    resp = _get_client().chat.completions.create(
+        model="llama-3.3-70b-versatile",
         max_tokens=150,
         temperature=0.3,
         messages=[{"role": "user", "content": prompt}],
     )
-    return msg.content[0].text.strip()
+    return resp.choices[0].message.content.strip()
 
 
 def parse_search_query(query: str) -> dict:
@@ -57,13 +60,13 @@ def parse_search_query(query: str) -> dict:
         "Only return fields from this schema. Do not add has_pool or other unsupported fields.\n"
         f"Query: {query}"
     )
-    msg = _get_client().messages.create(
-        model="claude-haiku-4-5",
+    resp = _get_client().chat.completions.create(
+        model="llama-3.3-70b-versatile",
         max_tokens=200,
         temperature=0.0,
         messages=[{"role": "user", "content": prompt}],
     )
-    text = msg.content[0].text.strip()
+    text = resp.choices[0].message.content.strip()
     if text.startswith("```"):
         parts = text.split("```")
         text = parts[1]

@@ -1,5 +1,6 @@
 "use client";
 import { PredictionResponse } from "@/lib/api";
+import { CopyButton } from "@/components/CopyButton";
 
 const proxyImg = (url?: string) =>
   url ? `/api/img-proxy?url=${encodeURIComponent(url)}` : undefined;
@@ -24,7 +25,7 @@ const TIER_CONFIG = {
   low:    { label: "LOW-CONFIDENCE ESTIMATE",         badge: "⚠ DIRECTIONAL ONLY",    color: "var(--mute)" },
 };
 
-export function PredictionCard({ result, imageUrl, address: _address }: { result: PredictionResponse; imageUrl?: string; address?: string }) {
+export function PredictionCard({ result, imageUrl, address: addr }: { result: PredictionResponse; imageUrl?: string; address?: string }) {
   const t = tier(result.confidence_score);
   const cfg = TIER_CONFIG[t];
   const segs = 20;
@@ -57,7 +58,10 @@ export function PredictionCard({ result, imageUrl, address: _address }: { result
       <div className="panel-head">
         <div className="panel-dot" style={t === "low" ? { background: "var(--mute-2)" } : {}} />
         <span className="panel-label">{cfg.label}</span>
-        <span className="panel-meta">MODEL v{result.model_version} · 90% CI</span>
+        <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4 }}>
+          <CopyButton text={addr} />
+          <span className="panel-meta">MODEL v{result.model_version} · 90% CI</span>
+        </span>
       </div>
 
       {t === "low" && (

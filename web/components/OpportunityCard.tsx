@@ -1,5 +1,6 @@
 "use client";
 import { OpportunityItem } from "@/lib/api";
+import { CopyButton } from "@/components/CopyButton";
 
 const proxyImg = (url?: string | null) =>
   url ? `/api/img-proxy?url=${encodeURIComponent(url)}` : undefined;
@@ -67,7 +68,8 @@ export function OpportunityCard({ item }: { item: OpportunityItem }) {
         <span className="panel-label" style={{ maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {(item.address || "ADDR UNKNOWN").toUpperCase()}
         </span>
-        <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+        <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+          <CopyButton text={item.address} />
           <SourceChip source={item.data_source} />
           <span style={{
             fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700,

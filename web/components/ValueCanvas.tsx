@@ -1,10 +1,17 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { predict, getComps, lookupProperty, PredictionResponse, CompProperty } from "@/lib/api";
 import { PredictionCard } from "@/components/PredictionCard";
 import { ShapWaterfall } from "@/components/ShapWaterfall";
 import { CompsTable } from "@/components/CompsTable";
 import { ExplanationCard } from "@/components/ExplanationCard";
+import { CopyButton } from "@/components/CopyButton";
+
+const proxyImg = (url?: string) =>
+  url ? `/api/img-proxy?url=${encodeURIComponent(url)}` : undefined;
+
+const fmt = (n: number) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(n);
 
 const DEFAULT_DETAILS = {
   sqft_living: 0, beds: 0, baths_full: 0, baths_half: 0,
@@ -31,6 +38,15 @@ export function ValueCanvas() {
   const [comps, setComps] = useState<CompProperty[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    if (!showModal) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setShowModal(false); };
+    window.addEventListener("keydown", handler);
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("keydown", handler); document.body.style.overflow = ""; };
+  }, [showModal]);
 
   const handleLookup = async () => {
     if (!address.trim()) return;
@@ -245,8 +261,148 @@ export function ValueCanvas() {
 
         {result && geo && (
           <div style={{ marginTop: 24 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 18 }}>
+            <div
+              onClick={() => setShowModal(true)}
+              style={{ cursor: "pointer", position: "relative", marginBottom: 16 }}
+              title="Click to expand"
+            >
               <PredictionCard result={result} imageUrl={geo.image_url} address={address} />
+              <div style={{
+                position: "absolute", bottom: 10, right: 12,
+                fontFamily: "var(--font-mono)", fontSize: 9, fontWeight: 700, letterSpacing: "0.12em",
+                color: "var(--mute)", opacity: 0.7,
+              }}>
+                CLICK TO EXPAND ↗
+              </div>
+            </div>
+            <ExplanationCard
+              prediction={result}
+              zipCode={geo.zip_code}
+              sqft={details.sqft_living}
+              beds={details.beds}
+              baths={details.baths_full}
+              yearBuilt={details.year_built}
+            />
+            <div style={{ marginTop: 16, marginBottom: 16 }}>
+              <ShapWaterfall features={result.shap_top5} predictedPrice={result.predicted_price} />
+            </div>
+            {comps.length > 0 && <CompsTable comps={comps} />}
+          </div>
+        )}
+      </div>
+
+      {/* ── Prediction lightbox ── */}
+      {showModal && result && geo && (
+        <div
+          onClick={() => setShowModal(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 200,
+            background: "rgba(0,0,0,0.78)",
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "24px",
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: "100%", maxWidth: 720,
+              background: "var(--bg-1)",
+              border: "1px solid var(--line-2)",
+              boxShadow: "0 32px 80px rgba(0,0,0,0.6)",
+              overflowY: "auto",
+              maxHeight: "calc(100vh - 48px)",
+              position: "relative",
+            }}
+          >
+            {/* Close */}
+            <button
+              onClick={() => setShowModal(false)}
+              style={{
+                position: "absolute", top: 10, right: 12, zIndex: 10,
+                background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.1)",
+                color: "#fff", fontSize: 14, fontFamily: "var(--font-mono)",
+                padding: "3px 9px", cursor: "pointer", letterSpacing: "0.06em",
+              }}
+            >
+              ✕
+            </button>
+
+            {/* Hero image */}
+            {proxyImg(geo.image_url) && (
+              <div style={{ position: "relative", width: "100%", background: "#000" }}>
+                <img
+                  src={proxyImg(geo.image_url)}
+                  alt={address || "Property"}
+                  referrerPolicy="no-referrer"
+                  style={{ width: "100%", maxHeight: 480, objectFit: "contain", display: "block" }}
+                  onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }}
+                />
+                <div style={{
+                  position: "absolute", inset: 0,
+                  background: "linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.65) 100%)",
+                }} />
+                <div style={{
+                  position: "absolute", bottom: 14, left: 16, right: 52,
+                  fontFamily: "var(--font-mono)", fontSize: 13, fontWeight: 700,
+                  color: "#fff", letterSpacing: "0.08em",
+                  textShadow: "0 1px 4px rgba(0,0,0,0.8)",
+                }}>
+                  {address.toUpperCase()}
+                </div>
+              </div>
+            )}
+
+            {/* Header */}
+            <div className="panel-head" style={{ padding: "10px 16px" }}>
+              <div className="panel-dot" />
+              <span className="panel-label">AVM ESTIMATE · AUSTIN TX</span>
+              <span style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
+                <CopyButton text={address} />
+                <span className="panel-meta">MODEL v{result.model_version} · 90% CI</span>
+              </span>
+            </div>
+
+            {/* Price */}
+            <div style={{ padding: "18px 16px 0", textAlign: "center" }}>
+              <div className="t-mono" style={{
+                fontSize: 48, color: "var(--gold)", fontWeight: 600,
+                letterSpacing: "-0.02em", lineHeight: 1,
+              }}>
+                {fmt(result.predicted_price)}
+              </div>
+              <div className="t-mono" style={{ fontSize: 12, color: "var(--ink-2)", marginTop: 8, letterSpacing: "0.04em" }}>
+                {fmt(result.lower_bound)} <span style={{ color: "var(--mute)" }}>→</span> {fmt(result.upper_bound)}
+              </div>
+            </div>
+
+            {/* Property chips */}
+            <div style={{ padding: "14px 16px 0", display: "flex", flexWrap: "wrap", gap: 12 }}>
+              {geo.zip_code       && <span className="t-eyebrow">{geo.zip_code}</span>}
+              {details.beds   > 0 && <span className="t-eyebrow">{details.beds} BD</span>}
+              {details.baths_full > 0 && <span className="t-eyebrow">{details.baths_full} BA</span>}
+              {details.sqft_living > 0 && <span className="t-eyebrow">{details.sqft_living.toLocaleString()} SF</span>}
+              {details.year_built > 0 && <span className="t-eyebrow">BUILT {details.year_built}</span>}
+            </div>
+
+            {/* Confidence bar */}
+            <div style={{ padding: "16px 16px 8px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                <span className="t-eyebrow">CONFIDENCE</span>
+                <span className="t-mono" style={{ fontSize: 11, color: "var(--gold)", fontWeight: 600 }}>
+                  {result.confidence_score}/100
+                </span>
+              </div>
+              <div className="conf-segments">
+                {Array.from({ length: 20 }).map((_, i) => (
+                  <div key={i} className={`conf-seg${i < Math.round((result.confidence_score / 100) * 20) ? " on" : ""}`} />
+                ))}
+              </div>
+            </div>
+
+            {/* AI Explanation */}
+            <div style={{ padding: "8px 16px 20px" }}>
               <ExplanationCard
                 prediction={result}
                 zipCode={geo.zip_code}
@@ -256,13 +412,9 @@ export function ValueCanvas() {
                 yearBuilt={details.year_built}
               />
             </div>
-            <div style={{ marginBottom: 16 }}>
-              <ShapWaterfall features={result.shap_top5} predictedPrice={result.predicted_price} />
-            </div>
-            {comps.length > 0 && <CompsTable comps={comps} />}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

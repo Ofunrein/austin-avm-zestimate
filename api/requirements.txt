@@ -11,7 +11,7 @@ joblib>=1.4
 pyarrow>=14.0
 huggingface-hub>=0.23
 protobuf==3.20.3
-anthropic>=0.40.0
+openai>=1.30.0
 httpx>=0.23.0
 supabase>=2.4.0
 sendgrid>=6.11.0

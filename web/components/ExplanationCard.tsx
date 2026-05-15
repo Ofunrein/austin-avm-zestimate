@@ -47,7 +47,7 @@ export function ExplanationCard({ prediction, zipCode, sqft, beds, baths, yearBu
       <div className="panel-head">
         <div className="panel-dot" style={isLowConf ? { background: "var(--mute-2)" } : {}} />
         <span className="panel-label">AI · ANALYSIS</span>
-        <span className="panel-meta">CLAUDE HAIKU · SHAP-GROUNDED</span>
+        <span className="panel-meta">GROQ · LLAMA 3.3 · SHAP-GROUNDED</span>
       </div>
       <div style={{ padding: '16px 18px 18px' }}>
         {(isLowConf || isMedConf) && !loading && (
