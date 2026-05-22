@@ -48,7 +48,7 @@ export function UploadCanvas() {
         <div className="panel-dot" />
         <span className="panel-label">UPLOAD LISTINGS CSV</span>
         <span className="panel-meta" style={{ marginLeft: "auto" }}>
-          REQUIRED: sqft_living, beds, baths_full, year_built, zip_code, lat, lng, list_price
+          REQUIRED: sqft_living, beds, baths_full, year_built, zip_code, lat (latitude), lng (longitude), list_price
         </span>
       </div>
 
