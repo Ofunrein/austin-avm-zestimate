@@ -93,3 +93,43 @@ create unique index if not exists idx_deals_address on deals(address);
 
 -- Property photo URL for opportunity display
 alter table predictions add column if not exists photo_url text;
+
+-- Security hardening: Supabase warns when public-schema tables have RLS off.
+-- This app reads/writes Supabase only from trusted backend/server code with the
+-- service role key, so anon/authenticated browser roles should not get direct
+-- table access. Keep this block in sync with supabase/rls-security.sql.
+create table if not exists public.keepalive (
+  id integer primary key default 1,
+  touched_at timestamptz default now(),
+  source text,
+  constraint keepalive_single_row check (id = 1)
+);
+insert into public.keepalive (id, touched_at, source)
+values (1, now(), 'schema')
+on conflict (id) do nothing;
+
+-- Enable RLS and remove direct browser/API table access from anon/authenticated.
+-- This block skips any table that does not exist yet so it is safe to re-run.
+do $$
+declare
+  table_name text;
+begin
+  foreach table_name in array array[
+    'predictions',
+    'benchmark_runs',
+    'comps_cache',
+    'neighborhood_cache',
+    'deals',
+    'keepalive'
+  ]
+  loop
+    if to_regclass(format('public.%I', table_name)) is not null then
+      execute format('alter table public.%I enable row level security', table_name);
+      execute format('alter table public.%I force row level security', table_name);
+      execute format('revoke all on table public.%I from anon, authenticated', table_name);
+      execute format('grant all on table public.%I to service_role', table_name);
+    end if;
+  end loop;
+end $$;
+
+grant usage on schema public to service_role;
