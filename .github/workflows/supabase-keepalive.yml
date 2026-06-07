@@ -1,0 +1,44 @@
+name: Supabase Keepalive
+
+on:
+  schedule:
+    - cron: "0 12 * * *"
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase keepalive table
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          node <<'NODE'
+          const url = process.env.SUPABASE_URL;
+          const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+          if (!url || !key) {
+            throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+          }
+
+          const res = await fetch(`${url}/rest/v1/keepalive?id=eq.1`, {
+            method: 'PATCH',
+            headers: {
+              apikey: key,
+              authorization: `Bearer ${key}`,
+              'content-type': 'application/json',
+              prefer: 'return=minimal',
+            },
+            body: JSON.stringify({
+              touched_at: new Date().toISOString(),
+              source: 'github-actions',
+            }),
+          });
+
+          if (!res.ok) {
+            throw new Error(`Keepalive failed with ${res.status}: ${await res.text()}`);
+          }
+
+          console.log('Supabase keepalive ping succeeded');
+          NODE
