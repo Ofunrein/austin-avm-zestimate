@@ -154,7 +154,7 @@ def main() -> None:
     print("Upserting deals to Supabase...")
     if deals:
         try:
-            db.table("deals").upsert(deals).execute()
+            db.table("deals").upsert(deals, on_conflict="address").execute()
         except Exception as e:
             print(f"UPSERT_ERROR_REPR: {e!r}")
             print(f"UPSERT_ERROR_STR: {e}")
