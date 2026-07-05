@@ -34,10 +34,10 @@ jobs:
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
         run: |
           set +e
-          python -m api.scripts.monitor 2>&1 | tee /tmp/monitor_output.log
-          code=${PIPESTATUS[0]}
+          python -m api.scripts.monitor > /tmp/monitor_output.log 2>&1
+          code=$?
           if [ "$code" -ne 0 ]; then
             echo "::error::deal monitor exited with code $code"
-            tail -n 100 /tmp/monitor_output.log | while IFS= read -r line; do echo "::error::$line"; done
+            fold -w 200 /tmp/monitor_output.log | tail -n 200 | while IFS= read -r line; do echo "::error::$line"; done
           fi
           exit $code
