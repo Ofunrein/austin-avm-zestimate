@@ -20,6 +20,7 @@ jobs:
 
       - name: Run deal monitor
         env:
+          PYTHONFAULTHANDLER: "1"
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -31,4 +32,12 @@ jobs:
           MIN_CONFIDENCE: "0"
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
           KAGGLE_KEY: ${{ secrets.KAGGLE_KEY }}
-        run: python -m api.scripts.monitor
+        run: |
+          set +e
+          python -m api.scripts.monitor 2>&1 | tee /tmp/monitor_output.log
+          code=${PIPESTATUS[0]}
+          if [ "$code" -ne 0 ]; then
+            echo "::error::deal monitor exited with code $code"
+            tail -n 100 /tmp/monitor_output.log | while IFS= read -r line; do echo "::error::$line"; done
+          fi
+          exit $code
