@@ -153,7 +153,12 @@ def main() -> None:
 
     print("Upserting deals to Supabase...")
     if deals:
-        db.table("deals").upsert(deals).execute()
+        try:
+            db.table("deals").upsert(deals).execute()
+        except Exception as e:
+            print(f"UPSERT_ERROR_REPR: {e!r}")
+            print(f"UPSERT_ERROR_STR: {e}")
+            raise
 
     email_deals = [d for d in deals if d["value_gap_pct"] >= EMAIL_GAP_THRESHOLD]
     if email_deals:
